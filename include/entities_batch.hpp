@@ -4,27 +4,31 @@
 #include "entities.hpp"
 #include <vector>
 
-class EntitiesBatch {
-  std::vector<EntityGraphNode*> nodes;
-  std::vector<EntityGraphEdge*> edges;
-  std::vector<EntityGraphNodeLabel*> node_labels;
-  std::vector<EntityGraphEdgeLabel*> edge_labels;
-  std::vector<EntityGraphFreeLabel*> free_labels;
+namespace CrocobyGraph {
 
-public:
-  EntityGraphNode* add(EntityGraphNode&& node);
-  EntityGraphEdge* add(EntityGraphEdge&& edge);
-  EntityGraphNodeLabel* add(EntityGraphNodeLabel&& label);
-  EntityGraphEdgeLabel* add(EntityGraphEdgeLabel&& label);
-  EntityGraphFreeLabel* add(EntityGraphFreeLabel&& label);
+  class EntitiesBatch {
+    std::vector<EntityGraphNode*> nodes;
+    std::vector<EntityGraphEdge*> edges;
+    std::vector<EntityGraphNodeLabel*> node_labels;
+    std::vector<EntityGraphEdgeLabel*> edge_labels;
+    std::vector<EntityGraphFreeLabel*> free_labels;
 
-  EntitiesBatch(EntitiesBatch&&) noexcept = default;
-  EntitiesBatch& operator=(EntitiesBatch&&) noexcept = default;
-  EntitiesBatch(const EntitiesBatch&) = delete;
+  public:
+    EntityGraphNode* add(EntityGraphNode&& node);
+    EntityGraphEdge* add(EntityGraphEdge&& edge);
+    EntityGraphNodeLabel* add(EntityGraphNodeLabel&& label);
+    EntityGraphEdgeLabel* add(EntityGraphEdgeLabel&& label);
+    EntityGraphFreeLabel* add(EntityGraphFreeLabel&& label);
 
-  ~EntitiesBatch();
+    EntitiesBatch(EntitiesBatch&&) noexcept = default;
+    EntitiesBatch& operator=(EntitiesBatch&&) noexcept = default;
+    EntitiesBatch(const EntitiesBatch&) = delete;
 
-  friend class Scene;
-};
+    ~EntitiesBatch();
+
+    friend class Scene;
+  };
+
+}
 
 #endif 

@@ -1,13 +1,14 @@
 #include "layout.hpp"
 #include <iostream>
 
-using namespace CGraphAliases;
+namespace cg = CrocobyGraph;
+using namespace cg::aliases;
 
 int main() {
   const LGN graphOne[] = {
     {
       .label = "Parent",
-      .color = Colors::RED,
+      .color = cg::Colors::RED,
       .points_to = { "child1", "child2" }
     },
     {
@@ -27,7 +28,7 @@ int main() {
     { false, false, false }
   };
 
-  std::vector<LGN> graphTwo = layoutFromAdjacencyMatrix<3>(
+  std::vector<LGN> graphTwo = cg::layoutFromAdjacencyMatrix<3>(
     nodes,
     connections
   );
