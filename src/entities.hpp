@@ -22,10 +22,10 @@ namespace CrocobyGraph {
   struct EntityGraphEdge {
     EntityGraphNode* start { nullptr };
     EntityGraphNode* end { nullptr };
-    bool arrowOnStart { false };
-    bool arrowOnEnd { false };
+    bool arrow_on_start { false };
+    bool arrow_on_end { false };
     Color color { Colors::WHITE };
-    EdgeCurveType curveType { EdgeCurveType::Linear };
+    EdgeCurveType curve_type { EdgeCurveType::Linear };
   };
 
   struct EntityGraphNodeLabel {
