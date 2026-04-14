@@ -1,3 +1,6 @@
+#ifndef _CGRAPH_COLOR_HPP_
+#define _CGRAPH_COLOR_HPP_
+
 #include <cstdint>
 #include <ostream>
 #include <string>
@@ -36,3 +39,5 @@ namespace Colors {
   inline const Color BLUE { 0x0000FFFF };
   inline const Color TRANSPARENT { 0 };
 }
+
+#endif

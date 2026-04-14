@@ -1,3 +1,6 @@
+#ifndef _CGRAPH_ENTITIES_HPP_
+#define _CGRAPH_ENTITIES_HPP_
+
 #include "color.hpp"
 #include "position.hpp"
 #include <string>
@@ -48,3 +51,5 @@ namespace CGraphAliases {
   using EGEL = EntityGraphEdgeLabel;
   using EGFL = EntityGraphFreeLabel;
 }
+
+#endif

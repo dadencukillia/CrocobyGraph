@@ -1,3 +1,6 @@
+#ifndef _CGRAPH_ENTITIES_BATCH_HPP_
+#define _CGRAPH_ENTITIES_BATCH_HPP_
+
 #include "entities.hpp"
 #include <vector>
 
@@ -23,3 +26,5 @@ public:
 
   friend class Scene;
 };
+
+#endif 

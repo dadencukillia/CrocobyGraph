@@ -1,3 +1,6 @@
+#ifndef _CGRAPH_LAYOUT_HPP_
+#define _CGRAPH_LAYOUT_HPP_
+
 #include "color.hpp"
 #include <cstddef>
 #include <vector>
@@ -40,3 +43,5 @@ inline std::vector<LayoutGraphNode> layoutFromAdjacencyMatrix(
 
   return layout;
 }
+
+#endif
