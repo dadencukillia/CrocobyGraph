@@ -3,6 +3,9 @@ GENERATOR := Ninja
 .DEFAULT_GOAL := all
 .SILENT: run
 
+export CC := /usr/bin/clang
+export CXX := /usr/bin/clang++
+
 all: configure compile run
 
 clear:
