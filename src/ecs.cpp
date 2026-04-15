@@ -120,6 +120,6 @@ namespace CrocobyGraph {
     loop_busy = false;
   }
 
-  Scene* GraphECS::get_scene() { return scene; }
+  Scene& GraphECS::get_scene() { return *scene; }
 
 }

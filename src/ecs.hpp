@@ -52,7 +52,7 @@ namespace CrocobyGraph {
     void update(double dt);
     void run_loop();
 
-    Scene* get_scene();
+    Scene& get_scene();
 
   private:
     std::vector<tick_callback> tick_callbacks;

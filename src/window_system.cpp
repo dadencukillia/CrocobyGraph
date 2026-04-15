@@ -9,7 +9,7 @@ namespace CrocobyGraph {
 
     return {
       .init_callback = [window, info_gui](InitEvent<GraphECS> ev) {
-        window->init(info_gui, ev.ecs->get_scene(), ev.ecs);
+        window->init(info_gui, &ev.ecs->get_scene(), ev.ecs);
       },
       .tick_callback = [window](TickEvent<GraphECS> ev) {
         window->draw();

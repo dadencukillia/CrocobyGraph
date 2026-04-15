@@ -7,7 +7,7 @@ namespace cg = CrocobyGraph;
 using namespace cg::aliases;
 
 int main() {
-  const LGN graphOne[] = {
+  std::vector<LGN> graphOne = {
     {
       .label = "Parent",
       .color = cg::Colors::RED,
@@ -35,13 +35,10 @@ int main() {
     connections
   );
 
-  cg::Batch batch {};
-  batch.add_node({ .position = { 10.0, 20.0 } }, { .label = "Node 1" });
-  batch.add_node({ .position = { 10.0, 20.0 } }, { .label = "Node 2" });
-  batch.add_node({ .position = { 10.0, 20.0 } }, { .label = "Node 3" });
+  cg::Batch decomposed { cg::decompose(std::move(graphOne)) };
 
   cg::GraphECS ecs {};
-  ecs.get_scene()->append(std::move(batch));
+  ecs.get_scene().append(std::move(decomposed));
   ecs.add_system(cg::get_window_system());
   ecs.run_loop();
 

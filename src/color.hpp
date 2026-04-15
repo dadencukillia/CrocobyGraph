@@ -34,12 +34,12 @@ namespace CrocobyGraph {
   };
 
   namespace Colors {
-    inline const Color WHITE { 0xFFFFFFFF };
-    inline const Color BLACK { 0x000000FF };
-    inline const Color RED { 0xFF0000FF };
-    inline const Color GREEN { 0x00FF00FF };
-    inline const Color BLUE { 0x0000FFFF };
-    inline const Color TRANSPARENT { 0 };
+    inline const Color WHITE(0xFFFFFFFF);
+    inline const Color BLACK(0x000000FF);
+    inline const Color RED(0xFF0000FF);
+    inline const Color GREEN(0x00FF00FF);
+    inline const Color BLUE(0x0000FFFF);
+    inline const Color TRANSPARENT(0);
   }
 
 }

@@ -2,6 +2,7 @@
 #define _CGRAPH_WINDOW_HPP_
 
 #include "ecs.hpp"
+#include "painter.hpp"
 #include "scene.hpp"
 
 namespace CrocobyGraph {
@@ -24,6 +25,7 @@ namespace CrocobyGraph {
   };
 
   class Window {
+    Painter painter {};
     Scene* scene { nullptr };
     GraphECS* ecs { nullptr };
     WindowInfo window_states { };

@@ -1,11 +1,14 @@
 #include "window.hpp"
+#include "color.hpp"
 #include "components.hpp"
 #include "entities.hpp"
+#include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
 #include <cstdint>
+#include <map>
 
 namespace CrocobyGraph {
 
@@ -70,7 +73,24 @@ namespace CrocobyGraph {
   }
 
   void Window::draw_components() {
-    DrawRectangle(-100, -100, 200, 200, ::RED);
+    std::map<entt::entity, PositionComponent> positions;
+
+    auto nodes = scene->get_registry().view<NodeEntity, PositionComponent>().each();
+
+    for (auto [entity, node, pos] : nodes) {
+      positions.insert({ entity, pos });
+    }
+
+    for (auto [entity, edge] : scene->get_registry().view<EdgeEntity>().each()) {
+      auto& a = positions[edge.node_start];
+      auto& b = positions[edge.node_end];
+      painter.draw_edge(a.x, a.y, b.x, b.y, edge.color, edge.curve_type);
+      positions.insert({ entity, { (a.x + b.x) / 2.0f, (a.y + b.y) / 2.0f } });
+    }
+
+    for (auto [entity, node, pos] : nodes) {
+      painter.draw_node(pos.x, pos.y, node.color, node.radius);
+    }
   }
 
   void Window::draw_gui() {
@@ -79,7 +99,7 @@ namespace CrocobyGraph {
   void Window::draw() {
     Camera2D rl_camera = { 0 };
     rl_camera.target = { window_states.camera_x, window_states.camera_y };
-    rl_camera.offset = { (float)window_states.width / 2, (float)window_states.height / 2 };
+    rl_camera.offset = { static_cast<float>(window_states.width) / 2, static_cast<float>(window_states.height) / 2 };
     rl_camera.zoom = window_states.camera_zoom;
     rl_camera.rotation = 0.0f;
 
@@ -93,9 +113,7 @@ namespace CrocobyGraph {
 
     if (with_gui) {
       rlImGuiBegin();
-
       draw_gui();
-
       rlImGuiEnd();
     }
 

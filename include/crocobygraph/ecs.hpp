@@ -4,5 +4,6 @@
 #include "../src/entities.hpp"
 #include "../src/components.hpp"
 #include "../src/ecs.hpp"
+#include "../src/decompose.hpp"
 
 #endif
