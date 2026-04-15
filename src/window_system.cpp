@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "rlImGui.h"
 #include <cmath>
+#include <cstdint>
 
 namespace CrocobyGraph {
 
@@ -11,7 +12,11 @@ namespace CrocobyGraph {
     return {
       .init_callback = [debug_gui](auto ev) {
         InitWindow(1200, 800, "Graph View");
-        if (debug_gui) rlImGuiSetup(true);
+        SetWindowState(FLAG_WINDOW_RESIZABLE);
+        if (debug_gui) {
+          rlImGuiSetup(true);
+          ImGui::GetIO().IniFilename = nullptr;
+        }
       },
       .tick_callback = [debug_gui](auto ev) {
         if (WindowShouldClose()) {
@@ -20,11 +25,19 @@ namespace CrocobyGraph {
 
         BeginDrawing();
       
-        ClearBackground(::RAYWHITE);
+        ClearBackground({ 36, 35, 44, 255 });
         DrawText("Hello", 0, 0,  16, ::BLACK);
+
+        for (int32_t x = 0; x <= GetScreenWidth(); x += 30) {
+          for (int32_t y = 0; y <= GetScreenHeight(); y += 30) {
+            DrawRectangle(x, y, 2, 2, { 54, 53, 61, 255 });
+          }
+        }
 
         if (debug_gui) {
           rlImGuiBegin();
+
+          ImGui::Begin("Graph Editor");
 
           float samples[100];
           for (int n = 0; n < 100; n++)
@@ -36,6 +49,8 @@ namespace CrocobyGraph {
           for (int n = 0; n < 50; n++)
               ImGui::Text("%04d: Some text", n);
           ImGui::EndChild();
+
+          ImGui::End();
 
           rlImGuiEnd();
         }

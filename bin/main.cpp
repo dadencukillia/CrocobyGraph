@@ -35,10 +35,8 @@ int main() {
     connections
   );
 
-  std::cout << "Wait for features!" << '\n';
-
   cg::GraphECS ecs {};
-  ecs.add_system(cg::get_window_system(false));
+  ecs.add_system(cg::get_window_system());
   ecs.run_loop();
 
   return 0;
