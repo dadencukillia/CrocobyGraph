@@ -1,5 +1,9 @@
 #include "ecs.hpp"
 #include <cassert>
+#include <chrono>
+#include <cstddef>
+#include <numeric>
+#include <thread>
 
 namespace CrocobyGraph {
 
@@ -41,12 +45,17 @@ namespace CrocobyGraph {
   }
 
   void GraphECS::clear_systems() {
-    for (auto& remove_cb : remove_callbacks) {
-        if (remove_cb) remove_cb({ this });
-    }
+    if (update_busy) {
+      remove_list.resize(remove_callbacks.size());
+      std::iota(remove_list.begin(), remove_list.end(), 0);
+    } else {
+      for (auto& remove_cb : remove_callbacks) {
+          if (remove_cb) remove_cb({ this });
+      }
 
-    tick_callbacks.clear();
-    remove_callbacks.clear();
+      tick_callbacks.clear();
+      remove_callbacks.clear();
+    }
   }
 
   void GraphECS::update(double dt) {

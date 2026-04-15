@@ -5,10 +5,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <functional>
-#include <iterator>
-#include <thread>
 #include <vector>
-#include <chrono>
 
 namespace CrocobyGraph {
 

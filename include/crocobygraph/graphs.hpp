@@ -1,5 +1,5 @@
-#ifndef LIB_CROCOBYGRAPH_CROCOBYGRAPH_HPP
-#define LIB_CROCOBYGRAPH_CROCOBYGRAPH_HPP
+#ifndef LIB_CROCOBYGRAPH_GRAPHS_HPP
+#define LIB_CROCOBYGRAPH_GRAPHS_HPP
 
 #include "../src/color.hpp"
 #include "../src/entities.hpp"

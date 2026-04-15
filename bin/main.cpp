@@ -1,4 +1,6 @@
-#include "CrocobyGraph.hpp"
+#include "crocobygraph/graphs.hpp"
+#include "crocobygraph/ecs.hpp"
+#include "crocobygraph/visual.hpp"
 #include <iostream>
 
 namespace cg = CrocobyGraph;
@@ -34,6 +36,10 @@ int main() {
   );
 
   std::cout << "Wait for features!" << '\n';
+
+  cg::GraphECS ecs {};
+  ecs.add_system(cg::get_window_system(false));
+  ecs.run_loop();
 
   return 0;
 }
