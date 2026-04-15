@@ -30,12 +30,16 @@ int main() {
     { false, false, false }
   };
 
-  std::vector<LGN> graphTwo = cg::layoutFromAdjacencyMatrix<3>(
+  std::vector<LGN> graphTwo = cg::layout_from_adjacency_matrix<3>(
     nodes,
     connections
   );
 
+  cg::Batch batch {};
+  batch.add_node({ .position = { 10.0, 20.0 } }, { .label = "Node 1" });
+
   cg::GraphECS ecs {};
+  ecs.get_scene()->append(std::move(batch));
   ecs.add_system(cg::get_window_system());
   ecs.run_loop();
 

@@ -12,12 +12,13 @@ project(CrocobyGraph LANGUAGES C CXX VERSION 0.1.0)
 find_package(raylib REQUIRED)
 find_package(imgui REQUIRED)
 find_package(rlImgui REQUIRED)
+find_package(entt REQUIRED)
 
 file(GLOB CGRAPH_SRC "src/*.cpp")
 add_library(CrocobyGraph ${CGRAPH_SRC})
 
 target_include_directories(CrocobyGraph PUBLIC ./include)
-target_link_libraries(CrocobyGraph PRIVATE rlImGui)
+target_link_libraries(CrocobyGraph PUBLIC rlImGui entt)
 
 # Demo executable
 

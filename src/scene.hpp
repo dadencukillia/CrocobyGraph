@@ -1,18 +1,15 @@
 #ifndef _CGRAPH_SCENE_HPP_
 #define _CGRAPH_SCENE_HPP_
 
-#include "entities_batch.hpp"
+#include "batch.hpp"
 #include "entities.hpp"
 #include <vector>
+#include "entt/entt.hpp"
 
 namespace CrocobyGraph {
 
   class Scene {
-    std::vector<EntityGraphNode*> nodes;
-    std::vector<EntityGraphEdge*> edges;
-    std::vector<EntityGraphNodeLabel*> node_labels;
-    std::vector<EntityGraphEdgeLabel*> edge_labels;
-    std::vector<EntityGraphFreeLabel*> free_labels;
+    entt::registry registry;
 
   public:
     Scene() = default;
@@ -22,21 +19,19 @@ namespace CrocobyGraph {
 
     ~Scene();
 
-    void remove(EntityGraphNode* node_ptr);
-    void remove(EntityGraphEdge* edge_ptr);
-    void remove(EntityGraphNodeLabel* label_ptr);
-    void remove(EntityGraphEdgeLabel* label_ptr);
-    void remove(EntityGraphFreeLabel* label_ptr);
-
-    void append(EntitiesBatch&& batch);
-
+    void remove(entt::entity id);
+    void append(Batch&& batch);
     void clear();
 
-    const std::vector<EntityGraphNode*>& get_nodes() const;
-    const std::vector<EntityGraphEdge*>& get_edges() const;
-    const std::vector<EntityGraphNodeLabel*>& get_node_labels() const;
-    const std::vector<EntityGraphEdgeLabel*>& get_edge_labels() const;
-    const std::vector<EntityGraphFreeLabel*>& get_free_labels() const;
+    template <typename It>
+    void remove(It first, It last) {
+      return this->registry.destroy(first, last);
+    }
+
+    template <typename... Type, typename... Exclude>
+    auto view(entt::exclude_t<Exclude...> exclude = {}) const {
+      return this->registry.view<Type...>(exclude);
+    }
   };
 
 }
