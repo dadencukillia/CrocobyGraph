@@ -7,14 +7,14 @@
 namespace CrocobyGraph {
 
   struct PositionComponent {
-    double x { 0.0 };
-    double y { 0.0 };
+    float x { 0.0f };
+    float y { 0.0f };
   };
 
   struct AttachComponent {
     entt::entity target { entt::null };
-    double offset_x { 0.0 };
-    double offset_y { 0.0 };
+    float offset_x { 0.0f };
+    float offset_y { 0.0f };
   };
 
 }

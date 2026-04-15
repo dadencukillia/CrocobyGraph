@@ -8,7 +8,34 @@
 
 namespace CrocobyGraph {
 
-  Scene::~Scene() {}
+  void on_destroy_node(entt::registry& registry, entt::entity entity_to_destroy) {
+    std::vector<entt::entity> to_remove;
+
+    for (auto [entity, attachment] : registry.view<AttachComponent>().each()) {
+      if (attachment.target == entity_to_destroy) to_remove.push_back(entity);
+    }
+
+    for (auto [entity, edge] : registry.view<EdgeEntity>().each()) {
+      if (edge.node_start == entity_to_destroy || edge.node_end == entity_to_destroy) to_remove.push_back(entity);
+    }
+
+    for (auto entity : to_remove) registry.destroy(entity);
+  }
+
+  void on_destroy_edge(entt::registry& registry, entt::entity entity_to_destroy) {
+    std::vector<entt::entity> to_remove;
+
+    for (auto [entity, attachment] : registry.view<AttachComponent>().each()) {
+      if (attachment.target == entity_to_destroy) to_remove.push_back(entity);
+    }
+
+    for (auto entity : to_remove) registry.destroy(entity);
+  }
+
+  Scene::Scene() {
+    registry.on_destroy<NodeEntity>().connect<&on_destroy_node>();
+    registry.on_destroy<EdgeEntity>().connect<&on_destroy_edge>();
+  }
 
   void Scene::remove(entt::entity id) {
     this->registry.destroy(id);
@@ -91,10 +118,14 @@ namespace CrocobyGraph {
 
       auto entity = registry.create();
       registry.emplace<LabelEntity>(entity, label.first.label, label.first.color);
-      registry.emplace<AttachComponent>(entity, attach_target, 0.0, 0.0);
+      registry.emplace<AttachComponent>(entity, attach_target, 0.0f, 0.0f);
 
       attach_label_ids[index] = entity;
     }
+  }
+
+  entt::registry& Scene::get_registry() {
+    return registry;
   }
 
   void Scene::clear() {

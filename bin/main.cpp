@@ -37,6 +37,8 @@ int main() {
 
   cg::Batch batch {};
   batch.add_node({ .position = { 10.0, 20.0 } }, { .label = "Node 1" });
+  batch.add_node({ .position = { 10.0, 20.0 } }, { .label = "Node 2" });
+  batch.add_node({ .position = { 10.0, 20.0 } }, { .label = "Node 3" });
 
   cg::GraphECS ecs {};
   ecs.get_scene()->append(std::move(batch));

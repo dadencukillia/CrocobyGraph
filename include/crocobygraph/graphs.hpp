@@ -4,6 +4,5 @@
 #include "../src/color.hpp"
 #include "../src/batch.hpp"
 #include "../src/layout.hpp"
-#include "../src/position.hpp"
 
 #endif
