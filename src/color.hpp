@@ -5,6 +5,10 @@
 #include <ostream>
 #include <string>
 
+extern "C" {
+  struct Color;
+}
+
 namespace CrocobyGraph {
 
   class Color {
@@ -30,10 +34,12 @@ namespace CrocobyGraph {
     std::string to_hex_string() const;
     std::string to_rgba_string() const;
 
+    operator ::Color() const;
+
     friend std::ostream& operator<<(std::ostream &in, const Color& color);
   };
 
-  namespace Colors {
+  namespace ColorPresets {
     inline const Color WHITE(0xFFFFFFFF);
     inline const Color BLACK(0x000000FF);
     inline const Color RED(0xFF0000FF);

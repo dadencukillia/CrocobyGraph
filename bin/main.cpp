@@ -10,16 +10,12 @@ int main() {
   std::vector<LGN> graphOne = {
     {
       .label = "Parent",
-      .color = cg::Colors::RED,
+      .color = cg::ColorPresets::RED,
       .points_to = { "child1", "child2" }
     },
     {
       .label = "Child 1",
       .id = "child1",
-    },
-    {
-      .label = "Child 2",
-      .id = "child2",
     }
   };
 
@@ -27,7 +23,7 @@ int main() {
   const bool connections[3][3] = {
     { false, false, true },
     { false, false, false },
-    { false, false, false }
+    { true, false, false }
   };
 
   std::vector<LGN> graphTwo = cg::layout_from_adjacency_matrix<3>(
@@ -35,7 +31,7 @@ int main() {
     connections
   );
 
-  cg::Batch decomposed { cg::decompose(std::move(graphOne)) };
+  cg::Batch decomposed { cg::decompose(std::move(graphTwo)) };
 
   cg::GraphECS ecs {};
   ecs.get_scene().append(std::move(decomposed));

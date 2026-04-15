@@ -1,4 +1,5 @@
 #include "color.hpp"
+#include "raylib.h"
 #include <string>
 #include <format>
 
@@ -44,6 +45,10 @@ namespace CrocobyGraph {
 
   std::string Color::to_rgba_string() const {
     return std::format("rgba({}, {}, {}, {})", r, g, b, a);
+  }
+
+  Color::operator ::Color() const {
+    return ::Color{ r, g, b, a };
   }
 
   std::ostream& operator<<(std::ostream &in, const Color& color) {

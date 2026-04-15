@@ -7,17 +7,19 @@ namespace CrocobyGraph {
 
   Batch decompose(std::vector<LayoutGraphNode>&& nodes) {
     Batch batch {};
-    std::map<std::string, BeingCreatedEntity> name_ids;
+    std::unordered_map<std::string, BeingCreatedEntity> name_ids;
     std::vector<BeingCreatedEntity> ids(nodes.size());
 
     uint32_t nodes_in_row = std::ceil(std::sqrt(static_cast<double>(nodes.size())));
+    float offset_x = -(75.0f * (nodes_in_row - 1.0f)) / 2.0f;
+    float offset_y = -(75.0f * (nodes.size() / nodes_in_row)) / 2.0f;
     for (size_t i = 0; i < nodes.size(); ++i) {
       auto& node = nodes[i];
 
       auto id = batch.add_node({
         .color = node.color,
-        .radius = 1.0,
-        .position = { 2.5f * (i % nodes_in_row), 2.5f * (i / nodes_in_row) }
+        .radius = 20.0,
+        .position = { 75.0f * (i % nodes_in_row) + offset_x, 75.0f * (i / nodes_in_row) + offset_y }
       });
 
       if (!node.label.empty()) {

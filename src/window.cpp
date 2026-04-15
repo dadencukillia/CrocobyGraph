@@ -2,7 +2,6 @@
 #include "color.hpp"
 #include "components.hpp"
 #include "entities.hpp"
-#include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
 #include "raylib.h"
 #include "imgui.h"
@@ -73,22 +72,36 @@ namespace CrocobyGraph {
   }
 
   void Window::draw_components() {
-    std::map<entt::entity, PositionComponent> positions;
+    std::unordered_map<entt::entity, PositionComponent> positions;
+    std::unordered_map<entt::entity, NodeEntity> nodes;
 
-    auto nodes = scene->get_registry().view<NodeEntity, PositionComponent>().each();
+    auto& registry = scene->get_registry();
 
-    for (auto [entity, node, pos] : nodes) {
+    for (auto [entity, node, pos] : registry.view<NodeEntity, PositionComponent>().each()) {
       positions.insert({ entity, pos });
+      nodes.insert({ entity, node });
     }
 
     for (auto [entity, edge] : scene->get_registry().view<EdgeEntity>().each()) {
       auto& a = positions[edge.node_start];
       auto& b = positions[edge.node_end];
       painter.draw_edge(a.x, a.y, b.x, b.y, edge.color, edge.curve_type);
+
+      if (edge.arrow_on_start) {
+        auto radius = nodes[edge.node_start].radius;
+        painter.draw_arrow(b.x, b.y, a.x, a.y, radius, edge.color);
+      }
+
+      if (edge.arrow_on_end) {
+        auto radius = nodes[edge.node_end].radius;
+        painter.draw_arrow(a.x, a.y, b.x, b.y, radius, edge.color);
+      }
+
       positions.insert({ entity, { (a.x + b.x) / 2.0f, (a.y + b.y) / 2.0f } });
     }
 
-    for (auto [entity, node, pos] : nodes) {
+    for (auto const& [entity, node] : nodes) {
+      auto& pos = positions[entity];
       painter.draw_node(pos.x, pos.y, node.color, node.radius);
     }
   }
