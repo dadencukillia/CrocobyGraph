@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "rlImGui.h"
 #include <cstdint>
+#include <ios>
 #include <map>
 
 namespace CrocobyGraph {
@@ -46,6 +47,8 @@ namespace CrocobyGraph {
       rlImGuiSetup(true);
       ImGui::GetIO().IniFilename = nullptr;
     }
+
+    painter.load();
   }
 
   void Window::draw_background() {
@@ -72,6 +75,11 @@ namespace CrocobyGraph {
   }
 
   void Window::draw_components() {
+    float left_rect = window_states.camera_x - window_states.width / 2.0 / window_states.camera_zoom;
+    float top_rect = window_states.camera_y - window_states.height / 2.0 / window_states.camera_zoom;
+    float right_rect = window_states.camera_x + window_states.width / 2.0 / window_states.camera_zoom;
+    float bottom_rect = window_states.camera_y + window_states.height / 2.0 / window_states.camera_zoom;
+
     std::unordered_map<entt::entity, PositionComponent> positions;
     std::unordered_map<entt::entity, NodeEntity> nodes;
 
@@ -85,24 +93,71 @@ namespace CrocobyGraph {
     for (auto [entity, edge] : scene->get_registry().view<EdgeEntity>().each()) {
       auto& a = positions[edge.node_start];
       auto& b = positions[edge.node_end];
-      painter.draw_edge(a.x, a.y, b.x, b.y, edge.color, edge.curve_type);
+
+      positions.insert({ entity, { (a.x + b.x) / 2.0f, (a.y + b.y) / 2.0f } });
+
+      float border_left = std::min(a.x, b.x) - 3.5f * window_states.camera_zoom;
+      float border_right = std::max(a.x, b.x) + 3.5f * window_states.camera_zoom;
+      float border_top = std::min(a.y, b.y) - 3.5f * window_states.camera_zoom;
+      float border_bottom = std::max(a.y, b.y) + 3.5f * window_states.camera_zoom;
+
+      if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
+      edge.curve_type = EdgeCurveType::Step;
+
+      painter.draw_edge({ a.x, a.y }, { b.x, b.y }, edge.color, edge.curve_type);
 
       if (edge.arrow_on_start) {
         auto radius = nodes[edge.node_start].radius;
-        painter.draw_arrow(b.x, b.y, a.x, a.y, radius, edge.color);
+        painter.draw_arrow({ b.x, b.y }, { a.x, a.y }, radius, edge.color, edge.curve_type);
       }
 
       if (edge.arrow_on_end) {
         auto radius = nodes[edge.node_end].radius;
-        painter.draw_arrow(a.x, a.y, b.x, b.y, radius, edge.color);
+        painter.draw_arrow({ a.x, a.y }, { b.x, b.y }, radius, edge.color, edge.curve_type);
       }
-
-      positions.insert({ entity, { (a.x + b.x) / 2.0f, (a.y + b.y) / 2.0f } });
     }
 
     for (auto const& [entity, node] : nodes) {
       auto& pos = positions[entity];
-      painter.draw_node(pos.x, pos.y, node.color, node.radius);
+
+      float border_left = pos.x - node.radius;
+      float border_right = pos.x + node.radius;
+      float border_top = pos.y - node.radius;
+      float border_bottom = pos.y + node.radius;
+
+      if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
+
+      painter.draw_node({ pos.x, pos.y }, node.color, node.radius);
+    }
+
+    for (auto [entity, label, pos] : registry.view<LabelEntity, PositionComponent>().each()) {
+      float distance_x = pos.x - window_states.camera_x;
+      float distance_y = pos.y - window_states.camera_y;
+      float distance = distance_x * distance_x + distance_y * distance_y;
+      float max_distance = 40'000.0f / window_states.camera_zoom;
+
+      if (distance > max_distance) continue;
+
+      auto color = label.color;
+      color.set_alpha(color.get_alpha() * std::max(0.0f, 1.0f - distance / max_distance));
+
+      painter.draw_label({ pos.x, pos.y }, label.label, color);
+    }
+
+    for (auto [entity, label, attach] : registry.view<LabelEntity, AttachComponent>().each()) {
+      auto pos = registry.get<PositionComponent>(attach.target);
+
+      float distance_x = pos.x - window_states.camera_x;
+      float distance_y = pos.y - window_states.camera_y;
+      float distance = distance_x * distance_x + distance_y * distance_y;
+      float max_distance = 40'000.0f / window_states.camera_zoom;
+
+      if (distance > max_distance) continue;
+
+      auto color = label.color;
+      color.set_alpha(color.get_alpha() * std::max(0.0f, 1.0f - distance / max_distance));
+
+      painter.draw_label({ pos.x + attach.offset_x, pos.y + attach.offset_y }, label.label, color);
     }
   }
 

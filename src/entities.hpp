@@ -9,7 +9,7 @@ namespace CrocobyGraph {
 
   enum class EdgeCurveType {
     Linear,
-    SlowMiddle,
+    Step,
     Ease
   };
 

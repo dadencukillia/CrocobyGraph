@@ -1,4 +1,5 @@
 #include "decompose.hpp"
+#include "entities.hpp"
 #include <cstddef>
 #include <map>
 #include <vector>
@@ -11,8 +12,10 @@ namespace CrocobyGraph {
     std::vector<BeingCreatedEntity> ids(nodes.size());
 
     uint32_t nodes_in_row = std::ceil(std::sqrt(static_cast<double>(nodes.size())));
+    uint32_t rows = std::ceil(static_cast<double>(nodes.size()) / nodes_in_row);
+
     float offset_x = -(75.0f * (nodes_in_row - 1.0f)) / 2.0f;
-    float offset_y = -(75.0f * (nodes.size() / nodes_in_row)) / 2.0f;
+    float offset_y = -(75.0f * (rows - 1.0f)) / 2.0f;
     for (size_t i = 0; i < nodes.size(); ++i) {
       auto& node = nodes[i];
 
@@ -53,7 +56,7 @@ namespace CrocobyGraph {
               .node_start = a, 
               .node_end = b, 
               .arrow_on_start = false, 
-              .arrow_on_end = true 
+              .arrow_on_end = true,
             } });
           }
         }

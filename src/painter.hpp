@@ -4,17 +4,23 @@
 #include "color.hpp"
 #include "entities.hpp"
 #include <string_view>
+#include "raylib.h"
 
 namespace CrocobyGraph {
 
   class Painter {
+    Font open_sans_font;
+
   public:
     Painter() = default;
+    ~Painter();
 
-    void draw_node(float x, float y, Color color, double radius);
-    void draw_edge(float from_x, float from_y, float to_x, float to_y, Color color, EdgeCurveType curve);
-    void draw_label(float x, float y, std::string_view text, Color color);
-    void draw_arrow(float from_x, float from_y, float to_x, float to_y, float radius, Color color);
+    void load();
+
+    void draw_node(Vector2 pos, Color color, double radius);
+    void draw_edge(Vector2 from, Vector2 to, Color color, EdgeCurveType curve);
+    void draw_label(Vector2 pos, std::string_view text, Color color);
+    void draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve);
   };
 
 }

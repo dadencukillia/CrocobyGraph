@@ -9,14 +9,19 @@ using namespace cg::aliases;
 int main() {
   std::vector<LGN> graphOne = {
     {
-      .label = "Parent",
+      .label = "Start",
       .color = cg::ColorPresets::RED,
-      .points_to = { "child1", "child2" }
+      .points_to = { "finish" },
+      .id = "start",
     },
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
     {
-      .label = "Child 1",
-      .id = "child1",
-    }
+      .label = "Finish",
+      .color = { 0x00FF00FF },
+      .points_to = { "start" },
+      .id = "finish",
+    },
+    {}, {},
   };
 
   std::string nodes[3] = { "Parent", "Child 1", "Child 2" };
@@ -31,7 +36,7 @@ int main() {
     connections
   );
 
-  cg::Batch decomposed { cg::decompose(std::move(graphTwo)) };
+  cg::Batch decomposed { cg::decompose(std::move(graphOne)) };
 
   cg::GraphECS ecs {};
   ecs.get_scene().append(std::move(decomposed));

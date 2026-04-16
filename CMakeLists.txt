@@ -13,12 +13,17 @@ find_package(raylib REQUIRED)
 find_package(imgui REQUIRED)
 find_package(rlImgui REQUIRED)
 find_package(entt REQUIRED)
+find_package(incbin REQUIRED)
 
 file(GLOB CGRAPH_SRC "src/*.cpp")
 add_library(CrocobyGraph ${CGRAPH_SRC})
 
 target_include_directories(CrocobyGraph PUBLIC ./include)
-target_link_libraries(CrocobyGraph PUBLIC rlImGui entt)
+target_link_libraries(CrocobyGraph PUBLIC rlImGui entt incbin)
+
+target_compile_definitions(CrocobyGraph PRIVATE 
+  FONT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/OpenSans.ttf"
+)
 
 # Demo executable
 
