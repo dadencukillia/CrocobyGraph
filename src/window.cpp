@@ -46,10 +46,10 @@ namespace CrocobyGraph {
     if (window_states.camera_zoom < 0.5) return;
 
     int64_t spacing = 50;
-    int64_t left_rect = static_cast<int>(window_states.camera_x - window_states.width / 2.0 / window_states.camera_zoom);
-    int64_t top_rect = static_cast<int>(window_states.camera_y - window_states.height / 2.0 / window_states.camera_zoom);
-    int64_t right_rect = static_cast<int>(window_states.camera_x + window_states.width / 2.0 / window_states.camera_zoom);
-    int64_t bottom_rect = static_cast<int>(window_states.camera_y + window_states.height / 2.0 / window_states.camera_zoom);
+    int64_t left_rect = static_cast<int>(window_states.camera_border_left);
+    int64_t top_rect = static_cast<int>(window_states.camera_border_top);
+    int64_t right_rect = static_cast<int>(window_states.camera_border_right);
+    int64_t bottom_rect = static_cast<int>(window_states.camera_border_bottom);
 
     left_rect -= 2;
     top_rect -= 2;
@@ -66,11 +66,6 @@ namespace CrocobyGraph {
   }
 
   void Window::draw_components() {
-    float left_rect = window_states.camera_x - window_states.width / 2.0 / window_states.camera_zoom;
-    float top_rect = window_states.camera_y - window_states.height / 2.0 / window_states.camera_zoom;
-    float right_rect = window_states.camera_x + window_states.width / 2.0 / window_states.camera_zoom;
-    float bottom_rect = window_states.camera_y + window_states.height / 2.0 / window_states.camera_zoom;
-
     std::unordered_map<entt::entity, PositionComponent> positions;
     std::unordered_map<entt::entity, NodeEntity> nodes;
 
@@ -101,7 +96,7 @@ namespace CrocobyGraph {
         float border_top = std::min(a.y, corner.y);
         float border_bottom = std::max(a.y, corner.y);
 
-        if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
+        if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
 
         painter.draw_self_loop({ a.x, a.y }, edge.color, nodes[edge.node_start].radius);
 
@@ -117,7 +112,7 @@ namespace CrocobyGraph {
         float border_top = std::min(a.y, b.y) - 3.5f * window_states.camera_zoom;
         float border_bottom = std::max(a.y, b.y) + 3.5f * window_states.camera_zoom;
 
-        if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
+        if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
 
         painter.draw_edge({ a.x, a.y }, { b.x, b.y }, edge.color, edge.curve_type);
 
@@ -142,7 +137,7 @@ namespace CrocobyGraph {
       float border_top = pos.y - node.radius;
       float border_bottom = pos.y + node.radius;
 
-      if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
+      if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
 
       painter.draw_node({ pos.x, pos.y }, node.color, node.radius);
     }
@@ -242,6 +237,13 @@ namespace CrocobyGraph {
       this->window_states.camera_x = pos.x;
       this->window_states.camera_y = pos.y;
       this->window_states.camera_zoom = camera.zoom;
+      this->window_states.camera_border_left = window_states.camera_x - window_states.width / 2.0 / window_states.camera_zoom;
+      this->window_states.camera_border_top = window_states.camera_y - window_states.height / 2.0 / window_states.camera_zoom;
+      this->window_states.camera_border_right = window_states.camera_x + window_states.width / 2.0 / window_states.camera_zoom;
+      this->window_states.camera_border_bottom = window_states.camera_y + window_states.height / 2.0 / window_states.camera_zoom;
+      this->window_states.cursor_local_position_x = this->window_states.cursor_local_position_x + GetMouseX();
+      this->window_states.cursor_local_position_y = this->window_states.cursor_local_position_y + GetMouseY();
+
       break;
     }
   }

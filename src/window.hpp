@@ -22,6 +22,12 @@ namespace CrocobyGraph {
     float camera_x { 0.0f };
     float camera_y { 0.0f };
     float camera_zoom { 1.0f };
+    float camera_border_left { 0.0f };
+    float camera_border_right { 0.0f };
+    float camera_border_top { 0.0f };
+    float camera_border_bottom { 0.0f };
+    float cursor_local_position_x { 0.0f };
+    float cursor_local_position_y { 0.0f };
   };
 
   class Window {
