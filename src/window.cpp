@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
+#include <cmath>
 #include <cstdint>
 #include <ios>
 #include <map>
@@ -96,29 +97,49 @@ namespace CrocobyGraph {
       auto& a = positions[edge.node_start];
       auto& b = positions[edge.node_end];
 
-      positions.insert({ entity, { (a.x + b.x) / 2.0f, (a.y + b.y) / 2.0f } });
-
-      float border_left = std::min(a.x, b.x) - 3.5f * window_states.camera_zoom;
-      float border_right = std::max(a.x, b.x) + 3.5f * window_states.camera_zoom;
-      float border_top = std::min(a.y, b.y) - 3.5f * window_states.camera_zoom;
-      float border_bottom = std::max(a.y, b.y) + 3.5f * window_states.camera_zoom;
-
-      if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
-
       if (a.x == b.x && a.y == b.y) {
-        painter.draw_self_loop({ a.x, a.y }, edge.color, nodes[edge.node_start].radius);
-      } else {
-        painter.draw_edge({ a.x, a.y }, { b.x, b.y }, edge.color, edge.curve_type);
-      }
-
-      if (edge.arrow_on_start) {
         auto radius = nodes[edge.node_start].radius;
-        painter.draw_arrow({ b.x, b.y }, { a.x, a.y }, radius, edge.color, edge.curve_type);
-      }
+        float distance = std::sqrt(a.x * a.x + a.y * a.y);
+        Vector2 normalized = { a.x / distance, a.y / distance };
+        float length = radius * 4.0f;
+        Vector2 corner = { a.x + normalized.x * length, a.y + normalized.y * length };
 
-      if (edge.arrow_on_end) {
-        auto radius = nodes[edge.node_end].radius;
-        painter.draw_arrow({ a.x, a.y }, { b.x, b.y }, radius, edge.color, edge.curve_type);
+        positions.insert({ entity, { corner.x * 2 / 3, corner.y * 2 / 3 } });
+
+        float border_left = std::min(a.x, corner.x);
+        float border_right = std::max(a.x, corner.x);
+        float border_top = std::min(a.y, corner.y);
+        float border_bottom = std::max(a.y, corner.y);
+
+        if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
+
+        painter.draw_self_loop({ a.x, a.y }, edge.color, nodes[edge.node_start].radius);
+
+        if (edge.arrow_on_start || edge.arrow_on_end) {
+          auto radius = nodes[edge.node_start].radius;
+          painter.draw_arrow({ b.x, b.y }, { a.x, a.y }, radius, edge.color, edge.curve_type);
+        }
+      } else {
+        positions.insert({ entity, { (a.x + b.x) / 2.0f, (a.y + b.y) / 2.0f } });
+
+        float border_left = std::min(a.x, b.x) - 3.5f * window_states.camera_zoom;
+        float border_right = std::max(a.x, b.x) + 3.5f * window_states.camera_zoom;
+        float border_top = std::min(a.y, b.y) - 3.5f * window_states.camera_zoom;
+        float border_bottom = std::max(a.y, b.y) + 3.5f * window_states.camera_zoom;
+
+        if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
+
+        painter.draw_edge({ a.x, a.y }, { b.x, b.y }, edge.color, edge.curve_type);
+
+        if (edge.arrow_on_start) {
+          auto radius = nodes[edge.node_start].radius;
+          painter.draw_arrow({ b.x, b.y }, { a.x, a.y }, radius, edge.color, edge.curve_type);
+        }
+
+        if (edge.arrow_on_end) {
+          auto radius = nodes[edge.node_end].radius;
+          painter.draw_arrow({ a.x, a.y }, { b.x, b.y }, radius, edge.color, edge.curve_type);
+        }
       }
     }
 
