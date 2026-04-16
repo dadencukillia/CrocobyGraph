@@ -2,6 +2,7 @@
 #include "color.hpp"
 #include "entities.hpp"
 #include "math.hpp"
+#include "physics.hpp"
 #include "raylib.h"
 #include <algorithm>
 #include <cmath>
@@ -17,6 +18,17 @@ namespace CrocobyGraph {
 
   Painter::~Painter() {
     UnloadFont(open_sans_font);
+  }
+
+  void Painter::draw_jelly_node(const std::vector<PositionComponent>& points, Vector2 center_pos, Color color) {
+    Vector2 fan_points[jelly_points + 2] = {};
+    fan_points[0] = { center_pos.x, center_pos.y };
+    fan_points[jelly_points + 1] = { points[jelly_points - 1].x, points[jelly_points - 1].y };
+    for (size_t i = 0; i < jelly_points; ++i) {
+      fan_points[i + 1] = { points[jelly_points - 1 - i].x, points[jelly_points - 1 - i].y };
+    }
+
+    DrawTriangleFan(fan_points, jelly_points + 2, color);
   }
 
   void Painter::draw_node(Vector2 pos, Color color, double radius) {

@@ -9,7 +9,7 @@ namespace CrocobyGraph {
 
   struct LayoutGraphNode {
     std::string label { "" };
-    Color color { ColorPresets::WHITE };
+    Color color { 0xFFFFFFFF };
     std::vector<std::string> points_to;
     std::string id { "" };
   };
@@ -22,7 +22,7 @@ namespace CrocobyGraph {
   inline std::vector<LayoutGraphNode> layout_from_adjacency_matrix(
     const std::string (&nodes)[N],
     const bool (&connections)[N][N],
-    const Color& colored = ColorPresets::WHITE
+    const Color& colored = 0xFFFFFFFF
   ) {
     std::vector<LayoutGraphNode> layout;
     layout.reserve(N);

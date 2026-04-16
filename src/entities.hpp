@@ -14,7 +14,7 @@ namespace CrocobyGraph {
   };
 
   struct NodeEntity {
-    Color color { ColorPresets::WHITE };
+    Color color { 0xFFFFFFFF };
     double radius { 20.0 };
   };
 
@@ -23,13 +23,13 @@ namespace CrocobyGraph {
     entt::entity node_end { entt::null };
     bool arrow_on_start { false };
     bool arrow_on_end { false };
-    Color color { ColorPresets::WHITE };
+    Color color { 0xFFFFFFFF };
     EdgeCurveType curve_type { EdgeCurveType::Linear };
   };
 
   struct LabelEntity {
     std::string label { "" };
-    Color color { ColorPresets::BLACK };
+    Color color { 0x000000FF };
   };
 
 }

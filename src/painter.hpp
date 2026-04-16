@@ -2,8 +2,10 @@
 #define _CGRAPH_PAINTER_HPP_
 
 #include "color.hpp"
+#include "components.hpp"
 #include "entities.hpp"
 #include <string_view>
+#include <vector>
 #include "raylib.h"
 
 namespace CrocobyGraph {
@@ -18,6 +20,7 @@ namespace CrocobyGraph {
     void load();
 
     void draw_node(Vector2 pos, Color color, double radius);
+    void draw_jelly_node(const std::vector<PositionComponent>& points, Vector2 center_pos, Color color);
     void draw_edge(Vector2 from, Vector2 to, Color color, EdgeCurveType curve);
     void draw_self_loop(Vector2 pos, Color color, double radius);
     void draw_label(Vector2 pos, std::string_view text, Color color);

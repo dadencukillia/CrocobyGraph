@@ -16,7 +16,7 @@ namespace CrocobyGraph {
   using Entity = std::variant<BeingCreatedEntity, entt::entity>;
 
   struct NodeBundle {
-    Color color { ColorPresets::WHITE };
+    Color color { 0xFFFFFFFF };
     double radius { 20.0 };
     PositionComponent position;
   };
@@ -26,7 +26,7 @@ namespace CrocobyGraph {
     Entity node_end { entt::null };
     bool arrow_on_start { false };
     bool arrow_on_end { false };
-    Color color { ColorPresets::WHITE };
+    Color color { 0xFFFFFFFF };
     EdgeCurveType curve_type { EdgeCurveType::Linear };
   };
 

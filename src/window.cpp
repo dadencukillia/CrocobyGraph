@@ -9,6 +9,7 @@
 #include "rlImGui.h"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 
@@ -135,14 +136,33 @@ namespace CrocobyGraph {
     for (auto const& [entity, node] : nodes) {
       auto& pos = positions[entity];
 
-      float border_left = pos.x - node.radius;
-      float border_right = pos.x + node.radius;
-      float border_top = pos.y - node.radius;
-      float border_bottom = pos.y + node.radius;
+      if (registry.all_of<JellyComponent>(entity)) {
+        float border_left = pos.x - node.radius;
+        float border_right = pos.x + node.radius;
+        float border_top = pos.y - node.radius;
+        float border_bottom = pos.y + node.radius;
+        auto& jelly = registry.get<JellyComponent>(entity);
 
-      if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
+        for (auto& point : jelly.points) {
+          border_left = std::min(point.x, border_left);
+          border_right = std::max(point.x, border_right);
+          border_top = std::min(point.y, border_top);
+          border_bottom = std::max(point.y, border_bottom);
+        }
 
-      painter.draw_node({ pos.x, pos.y }, node.color, node.radius);
+        if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
+
+        painter.draw_jelly_node(jelly.points, { pos.x, pos.y }, node.color);
+      } else {
+        float border_left = pos.x - node.radius;
+        float border_right = pos.x + node.radius;
+        float border_top = pos.y - node.radius;
+        float border_bottom = pos.y + node.radius;
+
+        if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
+
+        painter.draw_node({ pos.x, pos.y }, node.color, node.radius);
+      }
     }
 
     // Draw labels
