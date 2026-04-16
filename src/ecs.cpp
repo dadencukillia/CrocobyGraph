@@ -38,7 +38,7 @@ namespace CrocobyGraph {
     delete scene;
   }
 
-  void GraphECS::add_system(System<GraphECS> system) {
+  void GraphECS::add_system(System system) {
     system.init_callback({ this });
     tick_callbacks.push_back(system.tick_callback);
     remove_callbacks.push_back(system.remove_callback);
@@ -65,7 +65,7 @@ namespace CrocobyGraph {
     for (size_t i = 0; i < tick_callbacks.size(); ++i) {
       bool should_remove = false;
 
-      TickEvent<GraphECS> event {
+      TickEvent event {
         .ecs = this,
         .delta_seconds = dt,
         .remove_system = [&]() { should_remove = true; }

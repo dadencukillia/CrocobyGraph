@@ -4,14 +4,14 @@
 
 namespace CrocobyGraph {
 
-  System<GraphECS> get_window_system(bool info_gui) {
+  System get_window_system(bool info_gui) {
     auto window = new Window();
 
     return {
-      .init_callback = [window, info_gui](InitEvent<GraphECS> ev) {
+      .init_callback = [window, info_gui](InitEvent ev) {
         window->init(info_gui, &ev.ecs->get_scene(), ev.ecs);
       },
-      .tick_callback = [window](TickEvent<GraphECS> ev) {
+      .tick_callback = [window](TickEvent ev) {
         window->draw();
         window->update(ev.delta_seconds);
       },

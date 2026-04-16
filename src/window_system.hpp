@@ -5,7 +5,7 @@
 
 namespace CrocobyGraph {
 
-  System<GraphECS> get_window_system(bool info_gui = true);
+  System get_window_system(bool info_gui = true);
 
 }
 

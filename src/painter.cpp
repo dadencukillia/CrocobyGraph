@@ -20,7 +20,7 @@ namespace CrocobyGraph {
   }
 
   void Painter::draw_node(Vector2 pos, Color color, double radius) {
-    DrawCircle(pos.x, pos.y, static_cast<float>(radius), color);
+    DrawCircleV(pos, static_cast<float>(radius), color);
   }
 
   void Painter::draw_edge(Vector2 from, Vector2 to, Color color, EdgeCurveType curve) {

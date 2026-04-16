@@ -9,34 +9,32 @@
 
 namespace CrocobyGraph {
 
-  template <typename T>
+  class GraphECS;
+
   struct InitEvent {
-    T* ecs;
+    GraphECS* ecs;
   };
 
-  template <typename T>
   struct TickEvent {
-    T* ecs;
+    GraphECS* ecs;
     double delta_seconds;
     std::function<void ()> remove_system;
   };
 
-  template <typename T>
   struct RemoveEvent {
-    T* ecs;
+    GraphECS* ecs;
   };
 
-  template <typename T>
   struct System {
-    std::function<void (InitEvent<T>)> init_callback { [](InitEvent<T>){} };
-    std::function<void (TickEvent<T>)> tick_callback { [](TickEvent<T> e){ e.remove_system(); } };
-    std::function<void (RemoveEvent<T>)> remove_callback { [](RemoveEvent<T>){} };
+    std::function<void (InitEvent)> init_callback { [](InitEvent){} };
+    std::function<void (TickEvent)> tick_callback { [](TickEvent e){ e.remove_system(); } };
+    std::function<void (RemoveEvent)> remove_callback { [](RemoveEvent){} };
   };
 
   class GraphECS {
   public:
-    using tick_callback = std::function<void (TickEvent<GraphECS>)>;
-    using remove_callback = std::function<void (RemoveEvent<GraphECS>)>;
+    using tick_callback = std::function<void (TickEvent)>;
+    using remove_callback = std::function<void (RemoveEvent)>;
 
     GraphECS() = default;
     GraphECS(const GraphECS&) = delete;
@@ -47,7 +45,7 @@ namespace CrocobyGraph {
 
     ~GraphECS();
 
-    void add_system(System<GraphECS> system);
+    void add_system(System system);
     void clear_systems();
     void update(double dt);
     void run_loop();

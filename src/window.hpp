@@ -33,12 +33,9 @@ namespace CrocobyGraph {
 
   public:
     Window() = default;
-    Window(Scene* scene, GraphECS* ecs);
-
     ~Window();
 
     void init(bool gui, Scene* scene, GraphECS* ecs);
-    void init(bool gui);
 
     void draw_background();
     void draw_components();

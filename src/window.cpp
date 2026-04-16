@@ -8,8 +8,6 @@
 #include "rlImGui.h"
 #include <cmath>
 #include <cstdint>
-#include <ios>
-#include <map>
 
 namespace CrocobyGraph {
 
@@ -21,11 +19,6 @@ namespace CrocobyGraph {
     return entity;
   }
 
-  Window::Window(Scene* scene, GraphECS* ecs) :
-    scene(scene),
-    ecs(ecs) 
-  {}
-
   Window::~Window() {
     if (with_gui) rlImGuiShutdown();
     CloseWindow();
@@ -34,10 +27,7 @@ namespace CrocobyGraph {
   void Window::init(bool gui, Scene* scene, GraphECS* ecs) {
     this->scene = scene;
     this->ecs = ecs;
-    init(gui);
-  }
 
-  void Window::init(bool gui) {
     with_gui = gui;
 
     create_camera(scene->get_registry());
