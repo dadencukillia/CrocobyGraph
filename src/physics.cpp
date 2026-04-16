@@ -69,14 +69,14 @@ namespace CrocobyGraph {
         Vector2 vector = { pos.x - another_pos.x, pos.y - another_pos.y };
         float distance_square = vector.x * vector.x + vector.y * vector.y + 0.1f;
         float distance = std::sqrt(distance_square);
-        float k = 500'000.0f;
+        float k = 1'000'000.0f;
         float force = k / (distance_square * distance);
         forces.x += vector.x * force;
         forces.y += vector.y * force;
       }
 
       // Gravity force
-      float g = 0.5f;
+      float g = 1.0f;
       float center_distance = std::sqrt(pos.x * pos.x + pos.y * pos.y);
       Vector2 gravity_direction = { -pos.x / center_distance, -pos.y / center_distance };
       forces.x += gravity_direction.x * g * mass;

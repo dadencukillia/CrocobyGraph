@@ -3,11 +3,14 @@
 #include "components.hpp"
 #include "entities.hpp"
 #include "entt/entt.hpp"
+#include "physics.hpp"
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 
 namespace CrocobyGraph {
 
@@ -218,9 +221,8 @@ namespace CrocobyGraph {
     this->window_states.right_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
 
     auto& registry = scene->get_registry();
-    auto view = registry.view<CameraEntity, PositionComponent>();
 
-    for(auto [entity, camera, pos]: view.each()) {
+    for(auto [entity, camera, pos]: registry.view<CameraEntity, PositionComponent>().each()) {
       if (window_states.middle_button_pressed) {
         SetMouseCursor(MOUSE_CURSOR_RESIZE_ALL);
 
@@ -241,10 +243,24 @@ namespace CrocobyGraph {
       this->window_states.camera_border_top = window_states.camera_y - window_states.height / 2.0 / window_states.camera_zoom;
       this->window_states.camera_border_right = window_states.camera_x + window_states.width / 2.0 / window_states.camera_zoom;
       this->window_states.camera_border_bottom = window_states.camera_y + window_states.height / 2.0 / window_states.camera_zoom;
-      this->window_states.cursor_local_position_x = this->window_states.cursor_local_position_x + GetMouseX();
-      this->window_states.cursor_local_position_y = this->window_states.cursor_local_position_y + GetMouseY();
+      this->window_states.cursor_local_position_x = this->window_states.camera_border_left + GetMouseX() / camera.zoom;
+      this->window_states.cursor_local_position_y = this->window_states.camera_border_top + GetMouseY() / camera.zoom;
 
       break;
+    }
+
+    for(auto [entity, node, pos, vel]: registry.view<const NodeEntity, const PositionComponent, VelocityComponent>().each()) {
+      Vector2 vector = { 
+        pos.x - window_states.cursor_local_position_x,
+        pos.y - window_states.cursor_local_position_y,
+      };
+      float distance_square = vector.x * vector.x + vector.y * vector.y;
+      float distance = std::sqrt(distance_square);
+      float k = 500'000.0f;
+      float force_mag = k / (distance_square * distance);
+      float mass = node.radius * node.radius;
+      vel.x += vector.x * force_mag / mass;
+      vel.y += vector.y * force_mag / mass;
     }
   }
 
