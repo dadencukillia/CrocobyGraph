@@ -19,6 +19,7 @@ namespace CrocobyGraph {
 
     void draw_node(Vector2 pos, Color color, double radius);
     void draw_edge(Vector2 from, Vector2 to, Color color, EdgeCurveType curve);
+    void draw_self_loop(Vector2 pos, Color color, double radius);
     void draw_label(Vector2 pos, std::string_view text, Color color);
     void draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve);
   };

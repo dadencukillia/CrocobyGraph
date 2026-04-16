@@ -1,34 +1,17 @@
 #include "painter.hpp"
 #include "color.hpp"
 #include "entities.hpp"
+#include "math.hpp"
 #include "raylib.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include "resources/memory.hpp"
 
 namespace CrocobyGraph {
 
-  float EaseCubicInOut(float t, float b, float c, float d) {
-    float result = 0.0f;
-
-    if ((t /= 0.5f*d) < 1) result = 0.5f*c*t*t*t + b;
-    else {
-      t -= 2;
-      result = 0.5f*c*(t*t*t + 2.0f) + b;
-    }
-
-    return result;
-  }
-
-  Vector2 calculate_bezier_dot(Vector2 a, Vector2 b, float divisions, float index) {
-    return {
-      a.x + (b.x - a.x) / divisions * index,
-      EaseCubicInOut(index, a.y, b.y - a.y, divisions),
-    };
-  }
-
   void Painter::load() {
-    open_sans_font = LoadFontFromMemory(".ttf", OpenSansFontData, OpenSansFontSize, 48, nullptr, 0);
+    open_sans_font = LoadFontFromMemory(".ttf", OpenSansFontData, OpenSansFontSize, 96, nullptr, 0);
     SetTextureFilter(open_sans_font.texture, TEXTURE_FILTER_BILINEAR);
   }
 
@@ -41,26 +24,36 @@ namespace CrocobyGraph {
   }
 
   void Painter::draw_edge(Vector2 from, Vector2 to, Color color, EdgeCurveType curve) {
-    Vector2 start = { from.x, from.y };
-    Vector2 end = { to.x, to.y };
     float thickness = 3.0f;
 
     switch (curve) {
     case EdgeCurveType::Linear:
-      DrawLineEx(start, end, thickness, color);
+      DrawLineEx(from, to, thickness, color);
       break;
 
     case EdgeCurveType::Ease:
-      DrawLineBezier(start, end, thickness, color);
+      DrawLineBezier(from, to, thickness, color);
       break;
 
     case EdgeCurveType::Step:
-      float mid_x = start.x + (end.x - start.x) / 2.0f;
-      DrawLineEx(start, { mid_x, start.y }, thickness, color);
-      DrawLineEx({ mid_x, start.y }, { mid_x, end.y }, thickness, color);
-      DrawLineEx({ mid_x, end.y }, end, thickness, color);
+      float mid_x = from.x + (to.x - from.x) / 2.0f;
+      DrawLineEx(from, { mid_x, from.y }, thickness, color);
+      DrawLineEx({ mid_x, from.y }, { mid_x, to.y }, thickness, color);
+      DrawLineEx({ mid_x, to.y }, to, thickness, color);
       break;
     }
+  }
+
+  void Painter::draw_self_loop(Vector2 pos, Color color, double radius) {
+    float thickness = 3.0f;
+    float angle = std::atan2(pos.y, pos.x);
+    float width = 30.0f * PI / 180.0f;
+    float length = radius * 4.0f;
+    Vector2 p1 = { pos.x + std::cos(angle - width) * length, pos.y + std::sin(angle - width) * length };
+    Vector2 p2 = { pos.x + std::cos(angle + width) * length, pos.y + std::sin(angle + width) * length };
+
+    const Vector2 points[] = { pos, p1, p2, pos };
+    DrawSplineBezierCubic(points, 4, thickness, color);
   }
 
   void Painter::draw_label(Vector2 pos, std::string_view text, Color color) {
@@ -72,34 +65,35 @@ namespace CrocobyGraph {
   }
 
   void Painter::draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve) {
-    if (curve == EdgeCurveType::Ease) {
-      float radius_square = radius * radius;
+    if (from.x == to.x && from.y == to.y) {
+      uint32_t divisions = 64;
+      float angle = std::atan2(from.y, from.x);
+      float width = 30 * PI / 180.0f;
+      float length = radius * 4.0f;
+      Vector2 p1 = { from.x + std::cos(angle - width) * length, from.y + std::sin(angle - width) * length };
+      Vector2 p2 = { from.x + std::cos(angle + width) * length, from.y + std::sin(angle + width) * length };
 
-      float divisions = 128.0f;
-      int32_t left = 0;
-      int32_t right = divisions - 1.0f;
-      Vector2 dot;
-      float distance;
-      while (left != right) {
-        int32_t mid = left + std::floor((right - left) / 2.0f);
-        dot = calculate_bezier_dot({ from.x, from.y }, { to.x, to.y }, divisions, static_cast<float>(mid));
-        distance = (dot.x - to.x) * (dot.x - to.x) + (dot.y - to.y) * (dot.y - to.y);
-        if (distance > radius_square) {
-          left = mid + 1;
-        } else if (distance < radius_square) {
-          right = mid;
-        } else {
-          left = mid;
-          right = mid;
-        }
-      }
+      auto dot_by_index = [&](uint32_t index) {
+        return calculate_bezier_cubic_dot(from, to, p1, p2, divisions, static_cast<float>(index));
+      };
 
-      to.x = dot.x;
-      to.y = dot.y;
-      dot = calculate_bezier_dot({ from.x, from.y }, { to.x, to.y }, divisions, static_cast<float>(std::max(0, left - 1)));
-      from.x = dot.x;
-      from.y = dot.y;
-      radius -= std::sqrt(distance);
+      auto result = approximately_circle_intersection(divisions, radius, to, dot_by_index, divisions / 2);
+
+      from = dot_by_index(std::max(1u, result.intersection_point_index) - 1);
+      to = result.intersection_point;
+      radius -= result.distance;
+    } else if (curve == EdgeCurveType::Ease) {
+      uint32_t divisions = 128;
+
+      auto dot_by_index = [&](uint32_t index) {
+        return calculate_bezier_cubic_in_out_dot(from, to, divisions, static_cast<float>(index));
+      };
+
+      auto result = approximately_circle_intersection(divisions, radius, to, dot_by_index);
+
+      from = dot_by_index(std::max(1u, result.intersection_point_index) - 1);
+      to = result.intersection_point;
+      radius -= result.distance;
     } else if (curve == EdgeCurveType::Step) {
       if (to.x != from.x) {
         float mid_x = from.x + (to.x - from.x) / 2.0f;

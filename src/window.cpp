@@ -85,12 +85,14 @@ namespace CrocobyGraph {
 
     auto& registry = scene->get_registry();
 
-    for (auto [entity, node, pos] : registry.view<NodeEntity, PositionComponent>().each()) {
+    // Store nodes in maps
+    for (auto [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
       positions.insert({ entity, pos });
       nodes.insert({ entity, node });
     }
 
-    for (auto [entity, edge] : scene->get_registry().view<EdgeEntity>().each()) {
+    // Draw edges (below nodes)
+    for (auto [entity, edge] : scene->get_registry().view<const EdgeEntity>().each()) {
       auto& a = positions[edge.node_start];
       auto& b = positions[edge.node_end];
 
@@ -102,9 +104,12 @@ namespace CrocobyGraph {
       float border_bottom = std::max(a.y, b.y) + 3.5f * window_states.camera_zoom;
 
       if (border_left > right_rect || border_right < left_rect || border_top > bottom_rect || border_bottom < top_rect) continue;
-      edge.curve_type = EdgeCurveType::Step;
 
-      painter.draw_edge({ a.x, a.y }, { b.x, b.y }, edge.color, edge.curve_type);
+      if (a.x == b.x && a.y == b.y) {
+        painter.draw_self_loop({ a.x, a.y }, edge.color, nodes[edge.node_start].radius);
+      } else {
+        painter.draw_edge({ a.x, a.y }, { b.x, b.y }, edge.color, edge.curve_type);
+      }
 
       if (edge.arrow_on_start) {
         auto radius = nodes[edge.node_start].radius;
@@ -117,6 +122,7 @@ namespace CrocobyGraph {
       }
     }
 
+    // Draw nodes from maps
     for (auto const& [entity, node] : nodes) {
       auto& pos = positions[entity];
 
@@ -130,7 +136,8 @@ namespace CrocobyGraph {
       painter.draw_node({ pos.x, pos.y }, node.color, node.radius);
     }
 
-    for (auto [entity, label, pos] : registry.view<LabelEntity, PositionComponent>().each()) {
+    // Draw labels
+    for (auto [entity, label, pos] : registry.view<const LabelEntity, const PositionComponent>().each()) {
       float distance_x = pos.x - window_states.camera_x;
       float distance_y = pos.y - window_states.camera_y;
       float distance = distance_x * distance_x + distance_y * distance_y;
@@ -144,7 +151,7 @@ namespace CrocobyGraph {
       painter.draw_label({ pos.x, pos.y }, label.label, color);
     }
 
-    for (auto [entity, label, attach] : registry.view<LabelEntity, AttachComponent>().each()) {
+    for (auto [entity, label, attach] : registry.view<const LabelEntity, const AttachComponent>().each()) {
       auto pos = registry.get<PositionComponent>(attach.target);
 
       float distance_x = pos.x - window_states.camera_x;

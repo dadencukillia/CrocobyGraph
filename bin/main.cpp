@@ -14,21 +14,20 @@ int main() {
       .points_to = { "finish" },
       .id = "start",
     },
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
     {
       .label = "Finish",
       .color = { 0x00FF00FF },
-      .points_to = { "start" },
+      .points_to = { "start", "finish" },
       .id = "finish",
     },
-    {}, {},
   };
 
   std::string nodes[3] = { "Parent", "Child 1", "Child 2" };
   const bool connections[3][3] = {
-    { false, false, true },
-    { false, false, false },
-    { true, false, false }
+    { true, true, true },
+    { false, true, false },
+    { false, false, true }
   };
 
   std::vector<LGN> graphTwo = cg::layout_from_adjacency_matrix<3>(
