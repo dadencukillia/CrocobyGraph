@@ -1,7 +1,10 @@
 #include "editor_frame.hpp"
+#include "components.hpp"
 #include "ecs.hpp"
+#include "entities.hpp"
 #include "entt/entity/entity.hpp"
 #include "imgui.h"
+#include "math.hpp"
 #include "raylib.h"
 #include "resources/editor_icons.hpp"
 #include <cassert>
@@ -81,7 +84,16 @@ namespace CrocobyGraph {
 
     ImGui::Text("Mode: %s", mode_name.data());
 
-    if (current_node || current_edge || current_label) ImGui::Text("Select - left button\nCreate - right click");
+    if (selection.empty() && temp_selection.empty()) {
+      if (current_node || current_edge || current_label) ImGui::Text("Select - left button\nCreate - right click");
+    } else {
+      ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
+
+      if (ImGui::Button("Delete")) {
+        ecs.get_scene().get_registry().destroy(selection.begin(), selection.end());
+        selection.clear();
+      }
+    }
 
     ImGui::End();
 
@@ -109,6 +121,8 @@ namespace CrocobyGraph {
   inline void EditorFrame::process_selection(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label) {
     if (current_view) return;
 
+    auto& registry = ecs.get_scene().get_registry();
+
     if (info.left_button_down && !ImGui::GetIO().WantCaptureMouse) {
       if (drag.dragging) {
         drag.end_x = info.mouse_local_x;
@@ -124,7 +138,7 @@ namespace CrocobyGraph {
       Vector2 corner_top_left = { std::min(drag.start_x, drag.end_x), std::min(drag.start_y, drag.end_y) };
       Vector2 corner_bottom_right = { std::max(drag.start_x, drag.end_x), std::max(drag.start_y, drag.end_y) };
 
-      Vector2 translated_corner = { (corner_top_left.x - info.camera_x) * info.camera_zoom + info.width / 2.0f, (corner_top_left.y - info.camera_y) * info.camera_zoom + info.height / 2.0f };
+      Vector2 translated_corner = translate_world_to_screen_coordinates(corner_top_left, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) });
       Vector2 translated_size = { (corner_bottom_right.x - corner_top_left.x) * info.camera_zoom, (corner_bottom_right.y - corner_top_left.y) * info.camera_zoom };
 
       DrawRectangleV(
@@ -134,8 +148,41 @@ namespace CrocobyGraph {
       );
 
       DrawRectangleLinesEx(Rectangle { translated_corner.x, translated_corner.y, translated_size.x, translated_size.y }, 1.0f, { 0, 0, 180, 100 });
+
+      if (current_node) {
+        if (IsKeyUp(KEY_LEFT_CONTROL) && IsKeyUp(KEY_LEFT_SHIFT)) {
+          selection.clear();
+        }
+        temp_selection.clear();
+        for (auto [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
+          if (pos.x + node.radius >= corner_top_left.x && pos.x - node.radius <= corner_bottom_right.x && pos.y + node.radius >= corner_top_left.y && pos.y - node.radius <= corner_bottom_right.y) {
+            if (!selection.contains(entity)) {
+              temp_selection.insert(entity);
+            }
+          }
+        }
+      }
     } else {
+      for (auto& temp_select : temp_selection) {
+        selection.insert(temp_select);
+      }
+      temp_selection.clear();
       drag.dragging = false;
+    }
+
+    if (current_node) {
+      for (auto* selection_list : { &selection, &temp_selection }) {
+        for (auto& selected : *selection_list) {
+          if (!registry.valid(selected)) continue;
+
+          auto [node, pos] = registry.get<const NodeEntity, const PositionComponent>(selected);
+
+          DrawCircleV(
+            translate_world_to_screen_coordinates({ pos.x, pos.y }, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) }), 
+            node.radius * info.camera_zoom, { 0, 0, 180, 100 }
+          );
+        }
+      }
     }
   }
 

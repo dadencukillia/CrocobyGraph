@@ -2,9 +2,9 @@
 #define _CGRAPH_EDITOR_FRAME_HPP_
 
 #include "ecs.hpp"
-#include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
 #include "window_system.hpp"
+#include <unordered_set>
 #include <vector>
 
 namespace CrocobyGraph {
@@ -30,7 +30,8 @@ namespace CrocobyGraph {
     IconTextures* textures { nullptr };
     EditMode editor_mode { EditMode::View };
     DragState drag {};
-    std::vector<entt::entity> selection { entt::entity { entt::null } };
+    std::unordered_set<entt::entity> selection;
+    std::unordered_set<entt::entity> temp_selection;
 
   public:
     EditorFrame() = default;
