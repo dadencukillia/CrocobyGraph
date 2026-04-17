@@ -13,6 +13,15 @@
 namespace CrocobyGraph {
 
   class GraphECS {
+    std::queue<std::unique_ptr<ISystem>> new_systems_queue;
+    std::vector<std::unique_ptr<ISystem>> systems;
+    std::vector<size_t> remove_list;
+    Scene* scene { new Scene() };
+    bool update_busy { false };
+    bool loop_busy { false };
+
+    void add_systems_from_queue();
+
   public:
     GraphECS() = default;
     GraphECS(const GraphECS&) = delete;
@@ -36,16 +45,6 @@ namespace CrocobyGraph {
     }
 
     Scene& get_scene();
-
-  private:
-    std::queue<std::unique_ptr<ISystem>> new_systems_queue;
-    std::vector<std::unique_ptr<ISystem>> systems;
-    std::vector<size_t> remove_list;
-    Scene* scene { new Scene() };
-    bool update_busy { false };
-    bool loop_busy { false };
-
-    void add_systems_from_queue();
   };
 
 }

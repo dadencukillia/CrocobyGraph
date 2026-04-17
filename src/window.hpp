@@ -4,47 +4,23 @@
 #include "ecs.hpp"
 #include "painter.hpp"
 #include "scene.hpp"
+#include "window_system.hpp"
 
 namespace CrocobyGraph {
-
-  struct CameraEntity {
-    float zoom { 1.0f };
-  };
-
-  struct WindowInfo {
-    float mouse_x { 0.0f };
-    float mouse_y { 0.0f };
-    int width { 0 };
-    int height { 0 };
-    bool left_button_pressed { false };
-    bool right_button_pressed { false };
-    bool middle_button_pressed { false };
-    float camera_x { 0.0f };
-    float camera_y { 0.0f };
-    float camera_zoom { 1.0f };
-    float camera_border_left { 0.0f };
-    float camera_border_right { 0.0f };
-    float camera_border_top { 0.0f };
-    float camera_border_bottom { 0.0f };
-    float cursor_local_position_x { 0.0f };
-    float cursor_local_position_y { 0.0f };
-  };
-
-  struct GUIState {};
 
   class Window {
     Painter painter {};
     Scene* scene { nullptr };
     GraphECS* ecs { nullptr };
     WindowInfo window_states { };
-    GUIState gui_states { };
     bool with_gui { false };
+    std::vector<std::unique_ptr<WindowUIFrame>> ui_frames;
 
   public:
     Window() = default;
     ~Window();
 
-    void init(bool gui, Scene* scene, GraphECS* ecs);
+    void init(std::vector<std::unique_ptr<WindowUIFrame>>&& ui_frames, Scene* scene, GraphECS* ecs);
 
     void draw_background();
     void draw_components();

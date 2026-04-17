@@ -23,21 +23,20 @@ namespace CrocobyGraph {
   }
 
   Window::~Window() {
-    if (with_gui) rlImGuiShutdown();
+    if (!ui_frames.empty()) rlImGuiShutdown();
     CloseWindow();
   }
 
-  void Window::init(bool gui, Scene* scene, GraphECS* ecs) {
+  void Window::init(std::vector<std::unique_ptr<WindowUIFrame>>&& ui_frames, Scene* scene, GraphECS* ecs) {
     this->scene = scene;
     this->ecs = ecs;
-
-    with_gui = gui;
+    this->ui_frames = std::move(ui_frames);
 
     create_camera(scene->get_registry());
     InitWindow(1200, 800, "Graph View");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
 
-    if (gui) {
+    if (!ui_frames.empty()) {
       rlImGuiSetup(true);
       ImGui::GetIO().IniFilename = nullptr;
     }
@@ -197,19 +196,13 @@ namespace CrocobyGraph {
   }
 
   void Window::draw_gui() {
-    ImGui::Begin("Physics");
+    rlImGuiBegin();
 
-    if (ecs->check_system(PhysicsSystem::system_name)) {
-      if (ImGui::Button("Remove Physics")) {
-        ecs->remove_systems(PhysicsSystem::system_name);
-      }
-    } else {
-      if (ImGui::Button("Add Physics")) {
-        ecs->add_system(get_physics_system());
-      }
+    for (auto& frames : ui_frames) {
+      frames->draw(window_states, *ecs);
     }
 
-    ImGui::End();
+    rlImGuiEnd();
   }
 
   void Window::draw() {
@@ -227,30 +220,26 @@ namespace CrocobyGraph {
       draw_components();
     EndMode2D();
 
-    if (with_gui) {
-      rlImGuiBegin();
-      draw_gui();
-      rlImGuiEnd();
-    }
+    if (!ui_frames.empty()) draw_gui();
 
     EndDrawing();
   }
 
   void Window::update(double delta) {
     if (WindowShouldClose()) {
-      this->ecs->clear_systems();
+      ecs->clear_systems();
       return;
     }
 
-    this->window_states.mouse_x = GetMouseX();
-    this->window_states.mouse_y = GetMouseY();
+    window_states.mouse_x = GetMouseX();
+    window_states.mouse_y = GetMouseY();
 
-    this->window_states.width = GetScreenWidth();
-    this->window_states.height = GetScreenHeight();
+    window_states.width = GetScreenWidth();
+    window_states.height = GetScreenHeight();
 
-    this->window_states.left_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
-    this->window_states.middle_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_MIDDLE);
-    this->window_states.right_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+    window_states.left_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    window_states.middle_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_MIDDLE);
+    window_states.right_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
 
     auto& registry = scene->get_registry();
 
@@ -268,23 +257,23 @@ namespace CrocobyGraph {
       camera.zoom += -camera.zoom * camera.zoom * -GetMouseWheelMove() * delta * 6;
       camera.zoom = std::min(std::max(camera.zoom, 0.1f), 5.0f);
 
-      this->window_states.camera_x = pos.x;
-      this->window_states.camera_y = pos.y;
-      this->window_states.camera_zoom = camera.zoom;
-      this->window_states.camera_border_left = window_states.camera_x - window_states.width / 2.0 / window_states.camera_zoom;
-      this->window_states.camera_border_top = window_states.camera_y - window_states.height / 2.0 / window_states.camera_zoom;
-      this->window_states.camera_border_right = window_states.camera_x + window_states.width / 2.0 / window_states.camera_zoom;
-      this->window_states.camera_border_bottom = window_states.camera_y + window_states.height / 2.0 / window_states.camera_zoom;
-      this->window_states.cursor_local_position_x = this->window_states.camera_border_left + GetMouseX() / camera.zoom;
-      this->window_states.cursor_local_position_y = this->window_states.camera_border_top + GetMouseY() / camera.zoom;
+      window_states.camera_x = pos.x;
+      window_states.camera_y = pos.y;
+      window_states.camera_zoom = camera.zoom;
+      window_states.camera_border_left = window_states.camera_x - window_states.width / 2.0 / window_states.camera_zoom;
+      window_states.camera_border_top = window_states.camera_y - window_states.height / 2.0 / window_states.camera_zoom;
+      window_states.camera_border_right = window_states.camera_x + window_states.width / 2.0 / window_states.camera_zoom;
+      window_states.camera_border_bottom = window_states.camera_y + window_states.height / 2.0 / window_states.camera_zoom;
+      window_states.mouse_local_x = window_states.camera_border_left + GetMouseX() / camera.zoom;
+      window_states.mouse_local_y = window_states.camera_border_top + GetMouseY() / camera.zoom;
 
       break;
     }
 
     for(auto [entity, node, pos, vel]: registry.view<const NodeEntity, const PositionComponent, VelocityComponent>().each()) {
       Vector2 vector = { 
-        pos.x - window_states.cursor_local_position_x,
-        pos.y - window_states.cursor_local_position_y,
+        pos.x - window_states.mouse_local_x,
+        pos.y - window_states.mouse_local_y,
       };
       float distance_square = vector.x * vector.x + vector.y * vector.y;
       float distance = std::sqrt(distance_square);

@@ -18,7 +18,7 @@ namespace CrocobyGraph {
 
   void WindowSystem::init_system(InitEvent ev) {
     window = new Window();
-    window->init(gui, &ev.ecs->get_scene(), ev.ecs);
+    window->init(std::move(ui_frames), &ev.ecs->get_scene(), ev.ecs);
   }
 
   void WindowSystem::on_tick(TickEvent ev) {
@@ -31,15 +31,18 @@ namespace CrocobyGraph {
     window = nullptr;
   }
 
-  void WindowSystem::no_gui() {
-    gui = false;
+  void WindowSystem::add_ui_frame(std::unique_ptr<WindowUIFrame> frame) {
+    ui_frames.push_back(std::move(frame));
   }
 
-  std::unique_ptr<ISystem> get_window_system(bool gui) {
+  std::unique_ptr<ISystem> get_window_system(std::vector<std::unique_ptr<WindowUIFrame>>&& frames) {
     auto system = std::make_unique<WindowSystem>();
-    if (!gui) system->no_gui();
 
-    return std::move(system);
+    for (auto& frame : frames) {
+      system->add_ui_frame(std::move(frame));
+    }
+
+    return system;
   }
 
 }

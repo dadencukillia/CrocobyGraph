@@ -1,7 +1,6 @@
 #include "crocobygraph/graphs.hpp"
 #include "crocobygraph/ecs.hpp"
 #include "crocobygraph/visual.hpp"
-#include "crocobygraph/physics.hpp"
 #include <iostream>
 
 namespace cg = CrocobyGraph;

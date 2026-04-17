@@ -10,6 +10,9 @@ namespace CrocobyGraph {
   class Physics;
 
   class PhysicsSystem : public ISystem {
+    Physics* physics { nullptr };
+    bool jelly { true };
+
   public:
     static const std::string_view system_name;
 
@@ -24,10 +27,6 @@ namespace CrocobyGraph {
     void on_remove(RemoveEvent ev) override;
 
     void no_jelly();
-
-  private:
-    Physics* physics { nullptr };
-    bool jelly { true };
   };
 
   std::unique_ptr<ISystem> get_physics_system(bool jelly_effect = true);
