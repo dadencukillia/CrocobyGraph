@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 
 namespace CrocobyGraph {
 
@@ -54,6 +55,10 @@ namespace CrocobyGraph {
     if (!this->ui_frames.empty()) {
       rlImGuiSetup(true);
       ImGui::GetIO().IniFilename = nullptr;
+
+      for (auto& frame : this->ui_frames) {
+        frame->load(*ecs);
+      }
     }
 
     painter.load();

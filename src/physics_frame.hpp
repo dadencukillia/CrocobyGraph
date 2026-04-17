@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_BASIC_UI_FRAMES_HPP_
-#define _CGRAPH_BASIC_UI_FRAMES_HPP_
+#ifndef _CGRAPH_PHYSICS_FRAME_HPP_
+#define _CGRAPH_PHYSICS_FRAME_HPP_
 
 #include "ecs.hpp"
 #include "window_system.hpp"

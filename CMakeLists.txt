@@ -23,6 +23,10 @@ target_link_libraries(CrocobyGraph PUBLIC rlImGui entt incbin)
 
 target_compile_definitions(CrocobyGraph PRIVATE 
   FONT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/OpenSans.ttf"
+  EYE_ICON_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/eye.png"
+  NODE_ICON_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/node.png"
+  EDGE_ICON_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/edge.png"
+  LABEL_ICON_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/label.png"
 )
 
 # Demo executable

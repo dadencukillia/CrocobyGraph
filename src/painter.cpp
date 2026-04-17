@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include "resources/memory.hpp"
+#include "resources/open_sans.hpp"
 
 namespace CrocobyGraph {
 

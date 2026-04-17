@@ -1,6 +1,7 @@
 #ifndef _CGRAPH_WINDOW_SYSTEM_HPP_
 #define _CGRAPH_WINDOW_SYSTEM_HPP_
 
+#include "ecs.hpp"
 #include "systems.hpp"
 #include <memory>
 #include <string_view>
@@ -42,6 +43,7 @@ namespace CrocobyGraph {
 
   class WindowUIFrame {
   public:
+    virtual void load(GraphECS& ecs) {}
     virtual void draw(const WindowInfo& info, GraphECS& ecs) = 0;
     virtual ~WindowUIFrame() = default;
   };

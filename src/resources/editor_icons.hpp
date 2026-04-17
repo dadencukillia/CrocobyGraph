@@ -1,0 +1,13 @@
+#ifndef _CGRAPH_RESOURCES_OPEN_SANS_HPP_
+#define _CGRAPH_RESOURCES_OPEN_SANS_HPP_
+
+#define INCBIN_PREFIX
+
+#include "incbin.h"
+
+INCBIN(EditorIconEye, EYE_ICON_PATH);
+INCBIN(EditorIconNode, NODE_ICON_PATH);
+INCBIN(EditorIconEdge, EDGE_ICON_PATH);
+INCBIN(EditorIconLabel, LABEL_ICON_PATH);
+
+#endif
