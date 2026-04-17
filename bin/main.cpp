@@ -41,7 +41,6 @@ int main() {
   cg::GraphECS ecs {};
   ecs.get_scene().append(std::move(decomposed));
   ecs.add_system(cg::get_window_system());
-  ecs.add_system(cg::get_physics_system());
   ecs.run_loop();
 
   return 0;

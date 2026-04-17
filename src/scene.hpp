@@ -19,11 +19,6 @@ namespace CrocobyGraph {
     void append(Batch&& batch);
     void clear();
     entt::registry& get_registry();
-
-    template <typename It>
-    void remove(It first, It last) {
-      return this->registry.destroy(first, last);
-    }
   };
 
 }

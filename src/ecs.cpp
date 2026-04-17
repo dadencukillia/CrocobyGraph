@@ -2,46 +2,20 @@
 #include <cassert>
 #include <chrono>
 #include <cstddef>
+#include <cstdlib>
 #include <numeric>
 #include <thread>
+#include <utility>
 
 namespace CrocobyGraph {
-
-  GraphECS::GraphECS(GraphECS&& other) noexcept :
-    scene(other.scene), 
-    tick_callbacks(std::move(other.tick_callbacks)),
-    remove_callbacks(std::move(other.remove_callbacks)),
-    remove_list(std::move(other.remove_list)),
-    update_busy(other.update_busy),
-    loop_busy(other.loop_busy)
-  {
-    other.scene = nullptr;
-  }
-
-  GraphECS& GraphECS::operator=(GraphECS&& other) noexcept {
-    if (this != &other) {
-      delete scene;
-      scene = other.scene;
-      tick_callbacks = std::move(other.tick_callbacks);
-      remove_callbacks = std::move(other.remove_callbacks);
-      remove_list = std::move(other.remove_list);
-      update_busy = other.update_busy;
-      loop_busy = other.loop_busy;
-      other.scene = nullptr;
-    }
-
-    return *this;
-  }
 
   GraphECS::~GraphECS() {
     clear_systems();
     delete scene;
   }
 
-  void GraphECS::add_system(System system) {
-    system.init_callback({ this });
-    tick_callbacks.push_back(system.tick_callback);
-    remove_callbacks.push_back(system.remove_callback);
+  void GraphECS::add_system(System&& system) {
+    new_systems_queue.push(std::move(system));
   }
 
   void GraphECS::clear_systems() {
@@ -80,11 +54,11 @@ namespace CrocobyGraph {
 
     for (auto it = remove_list.rbegin(); it != remove_list.rend(); ++it) {
       size_t idx = *it;
-      
+
       if (remove_callbacks[idx]) {
           remove_callbacks[idx]({ this });
       }
-      
+
       tick_callbacks.erase(tick_callbacks.begin() + idx);
       remove_callbacks.erase(remove_callbacks.begin() + idx);
     }
@@ -102,6 +76,8 @@ namespace CrocobyGraph {
     auto last_time = clock::now();
     const double target_dt = 1.0 / 60.0;
 
+    add_systems_from_queue();
+
     while (!tick_callbacks.empty()) {
       auto frame_start = clock::now();
       std::chrono::duration<double> elapsed = frame_start - last_time;
@@ -109,6 +85,7 @@ namespace CrocobyGraph {
       last_time = frame_start;
 
       update(dt);
+      add_systems_from_queue();
 
       auto frame_end = clock::now();
       std::chrono::duration<double> work_time = frame_end - frame_start;
@@ -118,6 +95,16 @@ namespace CrocobyGraph {
     }
 
     loop_busy = false;
+  }
+
+  void GraphECS::add_systems_from_queue() {
+    for (; !new_systems_queue.empty(); new_systems_queue.pop()) {
+      auto& new_system = new_systems_queue.front();
+
+      new_system.init_callback({ this });
+      tick_callbacks.push_back(std::move(new_system.tick_callback));
+      remove_callbacks.push_back(std::move(new_system.remove_callback));
+    }
   }
 
   Scene& GraphECS::get_scene() { return *scene; }

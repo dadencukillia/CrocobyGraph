@@ -3,6 +3,8 @@
 
 #include "entities.hpp"
 #include "components.hpp"
+#include "entt/entity/entity.hpp"
+#include "entt/entity/fwd.hpp"
 #include <cstddef>
 #include <variant>
 #include <vector>
@@ -22,8 +24,8 @@ namespace CrocobyGraph {
   };
 
   struct EdgeBundle {
-    Entity node_start { entt::null };
-    Entity node_end { entt::null };
+    Entity node_start { entt::entity { entt::null } };
+    Entity node_end { entt::entity { entt::null } };
     bool arrow_on_start { false };
     bool arrow_on_end { false };
     Color color { 0xFFFFFFFF };

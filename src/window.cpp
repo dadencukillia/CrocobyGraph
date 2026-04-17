@@ -4,14 +4,13 @@
 #include "entities.hpp"
 #include "entt/entt.hpp"
 #include "physics.hpp"
+#include "physics_system.hpp"
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
-#include <iostream>
 
 namespace CrocobyGraph {
 
@@ -198,6 +197,13 @@ namespace CrocobyGraph {
   }
 
   void Window::draw_gui() {
+    ImGui::Begin("Physics");
+
+    if (ImGui::Button("Add Physics")) {
+      ecs->add_system(get_physics_system());
+    }
+
+    ImGui::End();
   }
 
   void Window::draw() {
@@ -242,7 +248,7 @@ namespace CrocobyGraph {
 
     auto& registry = scene->get_registry();
 
-    for(auto [entity, camera, pos]: registry.view<CameraEntity, PositionComponent>().each()) {
+    for(auto [entity, camera, pos] : registry.view<CameraEntity, PositionComponent>().each()) {
       if (window_states.middle_button_pressed) {
         SetMouseCursor(MOUSE_CURSOR_RESIZE_ALL);
 

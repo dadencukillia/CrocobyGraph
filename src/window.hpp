@@ -30,11 +30,14 @@ namespace CrocobyGraph {
     float cursor_local_position_y { 0.0f };
   };
 
+  struct GUIState {};
+
   class Window {
     Painter painter {};
     Scene* scene { nullptr };
     GraphECS* ecs { nullptr };
     WindowInfo window_states { };
+    GUIState gui_states { };
     bool with_gui { false };
 
   public:

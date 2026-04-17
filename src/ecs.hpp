@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <functional>
+#include <queue>
 #include <vector>
 
 namespace CrocobyGraph {
@@ -39,13 +40,12 @@ namespace CrocobyGraph {
     GraphECS() = default;
     GraphECS(const GraphECS&) = delete;
     GraphECS& operator=(const GraphECS&) = delete;
-
-    GraphECS(GraphECS&& other) noexcept;
-    GraphECS& operator=(GraphECS&& other) noexcept;
+    GraphECS(GraphECS&& other) noexcept = delete;
+    GraphECS& operator=(GraphECS&& other) noexcept = delete;
 
     ~GraphECS();
 
-    void add_system(System system);
+    void add_system(System&& system);
     void clear_systems();
     void update(double dt);
     void run_loop();
@@ -53,12 +53,15 @@ namespace CrocobyGraph {
     Scene& get_scene();
 
   private:
+    std::queue<System> new_systems_queue;
     std::vector<tick_callback> tick_callbacks;
     std::vector<remove_callback> remove_callbacks;
     std::vector<size_t> remove_list;
     Scene* scene { new Scene() };
     bool update_busy { false };
     bool loop_busy { false };
+
+    void add_systems_from_queue();
   };
 
 }
