@@ -9,7 +9,7 @@
 
 namespace CrocobyGraph {
 
-  inline const size_t jelly_points = 64;
+  inline const size_t jelly_points = 32;
 
   struct VelocityComponent {
     float x;

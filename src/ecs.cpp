@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdlib>
+#include <string_view>
 #include <thread>
 
 namespace CrocobyGraph {
@@ -15,6 +16,14 @@ namespace CrocobyGraph {
 
   void GraphECS::add_system(std::unique_ptr<ISystem> system) {
     new_systems_queue.push(std::move(system));
+  }
+
+  bool GraphECS::check_system(std::string_view system_name) {
+      for (auto& system : systems) {
+        if (system->get_system_name() == system_name) return true;
+      }
+
+      return false;
   }
 
   void clear_systems();
@@ -112,6 +121,6 @@ namespace CrocobyGraph {
     }
   }
 
-  Scene& GraphECS::get_scene() const { return *scene; }
+  Scene& GraphECS::get_scene() { return *scene; }
 
 }

@@ -3,6 +3,7 @@
 
 #include "systems.hpp"
 #include <memory>
+#include <string_view>
 
 namespace CrocobyGraph {
 
@@ -10,11 +11,14 @@ namespace CrocobyGraph {
 
   class WindowSystem : public ISystem {
   public:
+    static const std::string_view system_name;
+
     WindowSystem() = default;
     WindowSystem(const WindowSystem&) = delete;
     WindowSystem& operator=(const WindowSystem&) = delete;
     ~WindowSystem();
 
+    std::string_view get_system_name() override;
     void init_system(InitEvent ev) override;
     void on_tick(TickEvent ev) override;
     void on_remove(RemoveEvent ev) override;

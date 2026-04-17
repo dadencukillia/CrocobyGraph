@@ -1,11 +1,18 @@
 #include "physics_system.hpp"
 #include "physics.hpp"
 #include <cassert>
+#include <string_view>
 
 namespace CrocobyGraph {
 
+  const std::string_view PhysicsSystem::system_name { "dev.crocobygraph.physics" };
+
   PhysicsSystem::~PhysicsSystem() {
     assert(physics == nullptr && "For some reason on_remove haven't worked");
+  }
+
+  std::string_view PhysicsSystem::get_system_name() {
+    return system_name;
   }
 
   void PhysicsSystem::init_system(InitEvent ev) {

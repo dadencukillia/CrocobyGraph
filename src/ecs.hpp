@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <memory>
 #include <queue>
+#include <string_view>
 #include <vector>
 
 namespace CrocobyGraph {
@@ -22,6 +23,7 @@ namespace CrocobyGraph {
     ~GraphECS();
 
     void add_system(std::unique_ptr<ISystem> system);
+    bool check_system(std::string_view system_name);
     void clear_systems();
     void update(double dt);
     void run_loop();
@@ -32,7 +34,7 @@ namespace CrocobyGraph {
       add_system(new_sys);
     }
 
-    Scene& get_scene() const;
+    Scene& get_scene();
 
   private:
     std::queue<std::unique_ptr<ISystem>> new_systems_queue;
