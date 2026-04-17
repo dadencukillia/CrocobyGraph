@@ -3,7 +3,7 @@
 #include "components.hpp"
 #include "entities.hpp"
 #include "entt/entt.hpp"
-#include "physics.hpp"
+#include "physics_system.hpp"
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
@@ -45,9 +45,11 @@ namespace CrocobyGraph {
     this->ecs = ecs;
     this->ui_frames = std::move(ui_frames);
 
-    create_camera(scene->get_registry());
     InitWindow(1200, 800, "Graph View");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
+
+    create_camera(scene->get_registry());
+    create_cursor(scene->get_registry());
 
     if (!this->ui_frames.empty()) {
       rlImGuiSetup(true);

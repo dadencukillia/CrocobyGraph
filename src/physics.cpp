@@ -17,6 +17,7 @@ namespace CrocobyGraph {
     for (auto [entity, node] : registry.view<VelocityComponent>().each()) {
       registry.remove<VelocityComponent>(entity);
       registry.remove<JellyComponent>(entity);
+      registry.remove<RepulsionComponent>(entity);
     }
   }
 
