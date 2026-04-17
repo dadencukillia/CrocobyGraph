@@ -31,6 +31,7 @@ namespace CrocobyGraph {
     float camera_border_bottom { 0.0f };
     float mouse_local_x { 0.0f };
     float mouse_local_y { 0.0f };
+    double delta { 0.0 };
   };
 
   class WindowUIFrame {

@@ -13,7 +13,6 @@ namespace CrocobyGraph {
     Scene* scene { nullptr };
     GraphECS* ecs { nullptr };
     WindowInfo window_states { };
-    bool with_gui { false };
     std::vector<std::unique_ptr<WindowUIFrame>> ui_frames;
 
   public:

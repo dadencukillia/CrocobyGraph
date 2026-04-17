@@ -1,5 +1,6 @@
 #include "window_system.hpp"
 #include "ecs.hpp"
+#include "raylib.h"
 #include "window.hpp"
 #include <cassert>
 #include <memory>
@@ -22,8 +23,13 @@ namespace CrocobyGraph {
   }
 
   void WindowSystem::on_tick(TickEvent ev) {
-    window->draw();
     window->update(ev.delta_seconds);
+    window->draw();
+
+    if (WindowShouldClose()) {
+      ev.ecs->clear_systems();
+      return;
+    }
   }
 
   void WindowSystem::on_remove(RemoveEvent ev) {

@@ -4,7 +4,6 @@
 #include "entities.hpp"
 #include "entt/entt.hpp"
 #include "physics.hpp"
-#include "physics_system.hpp"
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
@@ -36,7 +35,7 @@ namespace CrocobyGraph {
     InitWindow(1200, 800, "Graph View");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
 
-    if (!ui_frames.empty()) {
+    if (!this->ui_frames.empty()) {
       rlImGuiSetup(true);
       ImGui::GetIO().IniFilename = nullptr;
     }
@@ -226,11 +225,7 @@ namespace CrocobyGraph {
   }
 
   void Window::update(double delta) {
-    if (WindowShouldClose()) {
-      ecs->clear_systems();
-      return;
-    }
-
+    window_states.delta = delta;
     window_states.mouse_x = GetMouseX();
     window_states.mouse_y = GetMouseY();
 
@@ -268,20 +263,6 @@ namespace CrocobyGraph {
       window_states.mouse_local_y = window_states.camera_border_top + GetMouseY() / camera.zoom;
 
       break;
-    }
-
-    for(auto [entity, node, pos, vel]: registry.view<const NodeEntity, const PositionComponent, VelocityComponent>().each()) {
-      Vector2 vector = { 
-        pos.x - window_states.mouse_local_x,
-        pos.y - window_states.mouse_local_y,
-      };
-      float distance_square = vector.x * vector.x + vector.y * vector.y;
-      float distance = std::sqrt(distance_square);
-      float k = 500'000.0f;
-      float force_mag = k / (distance_square * distance);
-      float mass = node.radius * node.radius;
-      vel.x += vector.x * force_mag / mass;
-      vel.y += vector.y * force_mag / mass;
     }
   }
 
