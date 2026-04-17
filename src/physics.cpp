@@ -62,10 +62,10 @@ namespace CrocobyGraph {
         vector.y / distance * force
       };
 
-      b_vel.x += force_apply.x / (b_node.radius * b_node.radius);
-      b_vel.y += force_apply.y / (b_node.radius * b_node.radius);
-      a_vel.x -= force_apply.x / (a_node.radius * a_node.radius);
-      a_vel.y -= force_apply.y / (a_node.radius * a_node.radius);
+      b_vel.x += delta * 60.0f * force_apply.x / (b_node.radius * b_node.radius);
+      b_vel.y += delta * 60.0f * force_apply.y / (b_node.radius * b_node.radius);
+      a_vel.x -= delta * 60.0f * force_apply.x / (a_node.radius * a_node.radius);
+      a_vel.y -= delta * 60.0f * force_apply.y / (a_node.radius * a_node.radius);
     }
 
     for (auto [entity, node, pos, velocity] : registry.view<const NodeEntity, const PositionComponent, VelocityComponent>().each()) {
@@ -93,8 +93,8 @@ namespace CrocobyGraph {
       forces.y += gravity_direction.y * g * mass;
 
       Vector2 acceleration = { forces.x / mass, forces.y / mass };
-      velocity.x += acceleration.x;
-      velocity.y += acceleration.y;
+      velocity.x += acceleration.x * delta * 60.0f;
+      velocity.y += acceleration.y * delta * 60.0f;
 
       float friction = 1.5f;
       velocity.x -= velocity.x * friction * delta;

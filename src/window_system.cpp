@@ -1,24 +1,39 @@
 #include "window_system.hpp"
 #include "ecs.hpp"
 #include "window.hpp"
+#include <cassert>
+#include <memory>
 
 namespace CrocobyGraph {
 
-  System get_window_system(bool info_gui) {
-    auto window = new Window();
+  WindowSystem::~WindowSystem() {
+    assert(window == nullptr && "For some reason on_remove haven't worked");
+  }
 
-    return {
-      .init_callback = [window, info_gui](InitEvent ev) {
-        window->init(info_gui, &ev.ecs->get_scene(), ev.ecs);
-      },
-      .tick_callback = [window](TickEvent ev) {
-        window->draw();
-        window->update(ev.delta_seconds);
-      },
-      .remove_callback = [window](auto ev) {
-        delete window;
-      }
-    };
+  void WindowSystem::init_system(InitEvent ev) {
+    window = new Window();
+    window->init(gui, &ev.ecs->get_scene(), ev.ecs);
+  }
+
+  void WindowSystem::on_tick(TickEvent ev) {
+    window->draw();
+    window->update(ev.delta_seconds);
+  }
+
+  void WindowSystem::on_remove(RemoveEvent ev) {
+    delete window;
+    window = nullptr;
+  }
+
+  void WindowSystem::no_gui() {
+    gui = false;
+  }
+
+  std::unique_ptr<ISystem> get_window_system(bool gui) {
+    auto system = std::make_unique<WindowSystem>();
+    if (!gui) system->no_gui();
+
+    return std::move(system);
   }
 
 }

@@ -1,11 +1,10 @@
 #include "ecs.hpp"
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstddef>
 #include <cstdlib>
-#include <numeric>
 #include <thread>
-#include <utility>
 
 namespace CrocobyGraph {
 
@@ -14,21 +13,24 @@ namespace CrocobyGraph {
     delete scene;
   }
 
-  void GraphECS::add_system(System&& system) {
+  void GraphECS::add_system(std::unique_ptr<ISystem> system) {
     new_systems_queue.push(std::move(system));
   }
 
+  void clear_systems();
+
   void GraphECS::clear_systems() {
     if (update_busy) {
-      remove_list.resize(remove_callbacks.size());
-      std::iota(remove_list.begin(), remove_list.end(), 0);
+      for (size_t i = 0; i < systems.size(); ++i) {
+        remove_list.push_back(i);
+      }
     } else {
-      for (auto& remove_cb : remove_callbacks) {
-          if (remove_cb) remove_cb({ this });
+      for (auto& system : systems) {
+        system->on_remove({ this });
       }
 
-      tick_callbacks.clear();
-      remove_callbacks.clear();
+      remove_list.clear();
+      systems.clear();
     }
   }
 
@@ -36,37 +38,41 @@ namespace CrocobyGraph {
     assert(!update_busy && "Update can't be summoned in callbacks");
     update_busy = true;
 
-    for (size_t i = 0; i < tick_callbacks.size(); ++i) {
+    for (size_t i = 0; i < systems.size(); ++i) {
+      auto& system = systems[i];
       bool should_remove = false;
 
-      TickEvent event {
+      system->on_tick(TickEvent {
         .ecs = this,
         .delta_seconds = dt,
         .remove_system = [&]() { should_remove = true; }
-      };
-
-      tick_callbacks[i](event);
+      });
 
       if (should_remove) {
         remove_list.push_back(i);
       }
     }
 
-    for (auto it = remove_list.rbegin(); it != remove_list.rend(); ++it) {
-      size_t idx = *it;
+    if (!remove_list.empty()) {
+      std::sort(remove_list.begin(), remove_list.end());
+      size_t last_removed_index = remove_list.back() + 1; // anti duplication
 
-      if (remove_callbacks[idx]) {
-          remove_callbacks[idx]({ this });
+      for (auto it = remove_list.rbegin(); it != remove_list.rend(); ++it) {
+        size_t idx = *it;
+
+        if (last_removed_index <= idx || idx >= systems.size()) continue;
+        last_removed_index = idx;
+
+        systems[idx]->on_remove({ this });
+        systems.erase(systems.begin() + idx);
       }
 
-      tick_callbacks.erase(tick_callbacks.begin() + idx);
-      remove_callbacks.erase(remove_callbacks.begin() + idx);
+      remove_list.clear();
     }
-
-    remove_list.clear();
 
     update_busy = false;
   }
+
 
   void GraphECS::run_loop() {
     assert(!loop_busy && "Already runned loop");
@@ -78,7 +84,7 @@ namespace CrocobyGraph {
 
     add_systems_from_queue();
 
-    while (!tick_callbacks.empty()) {
+    while (!systems.empty()) {
       auto frame_start = clock::now();
       std::chrono::duration<double> elapsed = frame_start - last_time;
       double dt = elapsed.count();
@@ -99,11 +105,10 @@ namespace CrocobyGraph {
 
   void GraphECS::add_systems_from_queue() {
     for (; !new_systems_queue.empty(); new_systems_queue.pop()) {
-      auto& new_system = new_systems_queue.front();
+      auto new_system = std::move(new_systems_queue.front());
 
-      new_system.init_callback({ this });
-      tick_callbacks.push_back(std::move(new_system.tick_callback));
-      remove_callbacks.push_back(std::move(new_system.remove_callback));
+      new_system->init_system({ this });
+      systems.push_back(std::move(new_system));
     }
   }
 

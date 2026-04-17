@@ -2,41 +2,17 @@
 #define _CGRAPH_ECS_HPP_
 
 #include "scene.hpp"
+#include "systems.hpp"
 #include <cstddef>
 #include <cstdlib>
-#include <functional>
+#include <memory>
 #include <queue>
 #include <vector>
 
 namespace CrocobyGraph {
 
-  class GraphECS;
-
-  struct InitEvent {
-    GraphECS* ecs;
-  };
-
-  struct TickEvent {
-    GraphECS* ecs;
-    double delta_seconds;
-    std::function<void ()> remove_system;
-  };
-
-  struct RemoveEvent {
-    GraphECS* ecs;
-  };
-
-  struct System {
-    std::function<void (InitEvent)> init_callback { [](InitEvent){} };
-    std::function<void (TickEvent)> tick_callback { [](TickEvent e){ e.remove_system(); } };
-    std::function<void (RemoveEvent)> remove_callback { [](RemoveEvent){} };
-  };
-
   class GraphECS {
   public:
-    using tick_callback = std::function<void (TickEvent)>;
-    using remove_callback = std::function<void (RemoveEvent)>;
-
     GraphECS() = default;
     GraphECS(const GraphECS&) = delete;
     GraphECS& operator=(const GraphECS&) = delete;
@@ -45,17 +21,22 @@ namespace CrocobyGraph {
 
     ~GraphECS();
 
-    void add_system(System&& system);
+    void add_system(std::unique_ptr<ISystem> system);
     void clear_systems();
     void update(double dt);
     void run_loop();
 
+    template <typename T, typename... Args>
+    void add_system(Args&&... args) {
+      auto new_sys = std::make_unique<T>(std::forward<Args>(args)...);
+      add_system(new_sys);
+    }
+
     Scene& get_scene() const;
 
   private:
-    std::queue<System> new_systems_queue;
-    std::vector<tick_callback> tick_callbacks;
-    std::vector<remove_callback> remove_callbacks;
+    std::queue<std::unique_ptr<ISystem>> new_systems_queue;
+    std::vector<std::unique_ptr<ISystem>> systems;
     std::vector<size_t> remove_list;
     Scene* scene { new Scene() };
     bool update_busy { false };
