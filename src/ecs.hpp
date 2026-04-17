@@ -23,6 +23,7 @@ namespace CrocobyGraph {
     ~GraphECS();
 
     void add_system(std::unique_ptr<ISystem> system);
+    size_t remove_systems(std::string_view system_name);
     bool check_system(std::string_view system_name);
     void clear_systems();
     void update(double dt);

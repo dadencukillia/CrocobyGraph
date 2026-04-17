@@ -18,12 +18,35 @@ namespace CrocobyGraph {
     new_systems_queue.push(std::move(system));
   }
 
-  bool GraphECS::check_system(std::string_view system_name) {
-      for (auto& system : systems) {
-        if (system->get_system_name() == system_name) return true;
-      }
+  size_t GraphECS::remove_systems(std::string_view system_name) {
+    size_t count = 0;
 
-      return false;
+    if (loop_busy) {
+      for (size_t i = 0; i < systems.size(); ++i) {
+        if (systems[i]->get_system_name() == system_name) {
+          remove_list.push_back(i);
+          ++count;
+        }
+      }
+    } else {
+      for (size_t i = systems.size(); i-- > 0; ) {
+        if (systems[i]->get_system_name() == system_name) {
+          systems[i]->on_remove({ this });
+          systems.erase(systems.begin() + i);
+          ++count;
+        }
+      }
+    }
+
+    return count;
+  }
+
+  bool GraphECS::check_system(std::string_view system_name) {
+    for (auto& system : systems) {
+      if (system->get_system_name() == system_name) return true;
+    }
+
+    return false;
   }
 
   void clear_systems();

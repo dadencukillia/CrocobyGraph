@@ -199,8 +199,14 @@ namespace CrocobyGraph {
   void Window::draw_gui() {
     ImGui::Begin("Physics");
 
-    if (ImGui::Button("Add Physics")) {
-      ecs->add_system(get_physics_system());
+    if (ecs->check_system(PhysicsSystem::system_name)) {
+      if (ImGui::Button("Remove Physics")) {
+        ecs->remove_systems(PhysicsSystem::system_name);
+      }
+    } else {
+      if (ImGui::Button("Add Physics")) {
+        ecs->add_system(get_physics_system());
+      }
     }
 
     ImGui::End();
