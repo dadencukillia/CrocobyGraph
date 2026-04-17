@@ -109,7 +109,7 @@ namespace CrocobyGraph {
   inline void EditorFrame::process_selection(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label) {
     if (current_view) return;
 
-    if (info.left_button_pressed && !ImGui::GetIO().WantCaptureMouse) {
+    if (info.left_button_down && !ImGui::GetIO().WantCaptureMouse) {
       if (drag.dragging) {
         drag.end_x = info.mouse_local_x;
         drag.end_y = info.mouse_local_y;

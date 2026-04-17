@@ -26,9 +26,9 @@ namespace CrocobyGraph {
     float mouse_y { 0.0f };
     int width { 0 };
     int height { 0 };
-    bool left_button_pressed { false };
-    bool right_button_pressed { false };
-    bool middle_button_pressed { false };
+    bool left_button_down { false };
+    bool right_button_down { false };
+    bool middle_button_down { false };
     float camera_x { 0.0f };
     float camera_y { 0.0f };
     float camera_zoom { 1.0f };

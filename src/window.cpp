@@ -253,14 +253,14 @@ namespace CrocobyGraph {
     window_states.width = GetScreenWidth();
     window_states.height = GetScreenHeight();
 
-    window_states.left_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
-    window_states.middle_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_MIDDLE);
-    window_states.right_button_pressed = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+    window_states.left_button_down = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    window_states.middle_button_down = IsMouseButtonDown(MOUSE_BUTTON_MIDDLE);
+    window_states.right_button_down = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
 
     auto& registry = scene->get_registry();
 
     for(auto [entity, camera, pos] : registry.view<CameraEntity, PositionComponent>().each()) {
-      if (window_states.middle_button_pressed) {
+      if (window_states.middle_button_down) {
         SetMouseCursor(MOUSE_CURSOR_RESIZE_ALL);
 
         auto mouse_motion = GetMouseDelta();
@@ -287,9 +287,9 @@ namespace CrocobyGraph {
     }
 
     for(auto [entity, cursor, pos] : registry.view<CursorEntity, PositionComponent>().each()) {
-      cursor.left_button = window_states.left_button_pressed;
-      cursor.middle_button = window_states.middle_button_pressed;
-      cursor.right_button = window_states.right_button_pressed;
+      cursor.left_button = window_states.left_button_down;
+      cursor.middle_button = window_states.middle_button_down;
+      cursor.right_button = window_states.right_button_down;
       pos.x = window_states.mouse_local_x;
       pos.y = window_states.mouse_local_y;
     }
