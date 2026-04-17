@@ -37,7 +37,7 @@ namespace CrocobyGraph {
     registry.on_destroy<EdgeEntity>().connect<&on_destroy_edge>();
   }
 
-  void Scene::append(Batch&& batch) {
+  void Scene::append(Batch&& batch, float offset_x, float offset_y) {
     std::vector<entt::entity> node_ids(batch.nodes_to_create.size());
     std::vector<entt::entity> edge_ids(batch.edges_to_create.size());
     std::vector<entt::entity> attach_label_ids(batch.attach_labels_to_create.size());
@@ -48,7 +48,7 @@ namespace CrocobyGraph {
 
       auto entity = registry.create();
       registry.emplace<NodeEntity>(entity, node.color, node.radius);
-      registry.emplace<PositionComponent>(entity, node.position.x, node.position.y);
+      registry.emplace<PositionComponent>(entity, node.position.x + offset_x, node.position.y + offset_y);
 
       node_ids[index] = entity;
     }
@@ -89,7 +89,7 @@ namespace CrocobyGraph {
 
       auto entity = registry.create();
       registry.emplace<LabelEntity>(entity, label.first.label, label.first.color);
-      registry.emplace<PositionComponent>(entity, label.second.x, label.second.y);
+      registry.emplace<PositionComponent>(entity, label.second.x + offset_x, label.second.y + offset_y);
 
       free_label_ids[index] = entity;
     }
