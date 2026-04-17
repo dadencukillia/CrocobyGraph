@@ -1,13 +1,28 @@
 #ifndef _CGRAPH_PHYSICS_SYSTEM_HPP_
 #define _CGRAPH_PHYSICS_SYSTEM_HPP_
 
+#include "components.hpp"
 #include "systems.hpp"
 #include <memory>
 #include <string_view>
+#include <vector>
 
 namespace CrocobyGraph {
 
   class Physics;
+
+  struct VelocityComponent {
+    float x { 0.0 };
+    float y { 0.0 };
+  };
+
+  struct JellyComponent {
+    std::vector<PositionComponent> points;
+  };
+
+  struct RepulsionComponent {
+    float charge { 1.0 };
+  };
 
   class PhysicsSystem : public ISystem {
     Physics* physics { nullptr };

@@ -14,6 +14,12 @@ namespace CrocobyGraph {
     float zoom { 1.0f };
   };
 
+  struct CursorEntity {
+    bool left_button;
+    bool middle_button;
+    bool right_button;
+  };
+
   struct WindowInfo {
     float mouse_x { 0.0f };
     float mouse_y { 0.0f };

@@ -1,4 +1,5 @@
 #include "physics.hpp"
+#include "physics_system.hpp"
 #include "components.hpp"
 #include "entities.hpp"
 #include "entt/entity/fwd.hpp"
@@ -34,8 +35,9 @@ namespace CrocobyGraph {
   void Physics::update(double delta) {
     auto& registry = scene->get_registry();
 
-    for (auto [entity, node] : registry.view<NodeEntity>(entt::exclude<VelocityComponent>).each()) {
+    for (auto [entity, node] : registry.view<NodeEntity>(entt::exclude<VelocityComponent, RepulsionComponent>).each()) {
       registry.emplace<VelocityComponent>(entity, 0.0f, 0.0f);
+      registry.emplace<RepulsionComponent>(entity, 1.0f);
     }
 
     update_velocity(delta);
@@ -68,19 +70,19 @@ namespace CrocobyGraph {
       a_vel.y -= delta * 60.0f * force_apply.y / (a_node.radius * a_node.radius);
     }
 
-    for (auto [entity, node, pos, velocity] : registry.view<const NodeEntity, const PositionComponent, VelocityComponent>().each()) {
+    for (auto [entity, node, pos, repulsion, velocity] : registry.view<const NodeEntity, const PositionComponent, const RepulsionComponent, VelocityComponent>().each()) {
       float mass = node.radius * node.radius;
       Vector2 forces = { 0.0f, 0.0f };
 
       // Coulomb's law
-      for (auto [another_entity, another_node, another_pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
+      for (auto [another_entity, another_repulsion, another_pos] : registry.view<const RepulsionComponent, const PositionComponent>().each()) {
         if (entity == another_entity) continue;
 
         Vector2 vector = { pos.x - another_pos.x, pos.y - another_pos.y };
         float distance_square = vector.x * vector.x + vector.y * vector.y + 0.1f;
         float distance = std::sqrt(distance_square);
         float k = 1'000'000.0f;
-        float force = k / (distance_square * distance);
+        float force = k * another_repulsion.charge * repulsion.charge / (distance_square * distance);
         forces.x += vector.x * force;
         forces.y += vector.y * force;
       }

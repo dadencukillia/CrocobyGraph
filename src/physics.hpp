@@ -5,20 +5,10 @@
 #include "ecs.hpp"
 #include "scene.hpp"
 #include <cstddef>
-#include <vector>
 
 namespace CrocobyGraph {
 
   inline const size_t jelly_points = 32;
-
-  struct VelocityComponent {
-    float x;
-    float y;
-  };
-
-  struct JellyComponent {
-    std::vector<PositionComponent> points;
-  };
 
   class Physics {
     Scene* scene { nullptr };

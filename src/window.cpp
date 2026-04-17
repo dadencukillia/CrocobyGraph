@@ -7,6 +7,7 @@
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
+#include "window_system.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -21,7 +22,20 @@ namespace CrocobyGraph {
     return entity;
   }
 
+  entt::entity create_cursor(entt::registry& registry) {
+    auto entity = registry.create();
+    registry.emplace<CursorEntity>(entity, false, false, false);
+    registry.emplace<PositionComponent>(entity, 0.0f, 0.0f);
+
+    return entity;
+  }
+
   Window::~Window() {
+    auto& registry = scene->get_registry();
+
+    registry.clear<CameraEntity>();
+    registry.clear<CursorEntity>();
+
     if (!ui_frames.empty()) rlImGuiShutdown();
     CloseWindow();
   }
@@ -263,6 +277,14 @@ namespace CrocobyGraph {
       window_states.mouse_local_y = window_states.camera_border_top + GetMouseY() / camera.zoom;
 
       break;
+    }
+
+    for(auto [entity, cursor, pos] : registry.view<CursorEntity, PositionComponent>().each()) {
+      cursor.left_button = window_states.left_button_pressed;
+      cursor.middle_button = window_states.middle_button_pressed;
+      cursor.right_button = window_states.right_button_pressed;
+      pos.x = window_states.mouse_local_x;
+      pos.y = window_states.mouse_local_y;
     }
   }
 
