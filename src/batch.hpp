@@ -44,7 +44,6 @@ namespace CrocobyGraph {
     std::vector<EdgeBundle> edges_to_create;
     std::vector<std::pair<LabelEntity, Entity>> attach_labels_to_create;
     std::vector<std::pair<LabelEntity, PositionComponent>> free_labels_to_create;
-
     std::vector<std::pair<size_t, PrimitiveType>> id_pointers;
 
   public:

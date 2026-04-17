@@ -37,10 +37,6 @@ namespace CrocobyGraph {
     registry.on_destroy<EdgeEntity>().connect<&on_destroy_edge>();
   }
 
-  void Scene::remove(entt::entity id) {
-    this->registry.destroy(id);
-  }
-
   void Scene::append(Batch&& batch) {
     std::vector<entt::entity> node_ids(batch.nodes_to_create.size());
     std::vector<entt::entity> edge_ids(batch.edges_to_create.size());

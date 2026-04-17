@@ -5,7 +5,6 @@
 
 namespace CrocobyGraph {
 
-
   System get_physics_system(bool jelly_effect = true);
 
 }

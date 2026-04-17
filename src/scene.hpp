@@ -15,7 +15,6 @@ namespace CrocobyGraph {
     Scene& operator=(const Scene&) = delete;
     Scene(Scene&&) = delete;
 
-    void remove(entt::entity id);
     void append(Batch&& batch);
     void clear();
     entt::registry& get_registry();

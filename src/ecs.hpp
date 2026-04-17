@@ -50,7 +50,7 @@ namespace CrocobyGraph {
     void update(double dt);
     void run_loop();
 
-    Scene& get_scene();
+    Scene& get_scene() const;
 
   private:
     std::queue<System> new_systems_queue;

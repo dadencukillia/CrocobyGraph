@@ -107,6 +107,6 @@ namespace CrocobyGraph {
     }
   }
 
-  Scene& GraphECS::get_scene() { return *scene; }
+  Scene& GraphECS::get_scene() const { return *scene; }
 
 }
