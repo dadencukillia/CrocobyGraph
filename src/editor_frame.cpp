@@ -57,6 +57,8 @@ namespace CrocobyGraph {
   void EditorFrame::draw(const WindowInfo& info, GraphECS& ecs) {
     assert(textures != nullptr);
 
+    auto& registry = ecs.get_scene().get_registry();
+
     auto current_view = editor_mode == EditMode::View;
     auto current_node = editor_mode == EditMode::Node;
     auto current_edge = editor_mode == EditMode::Edge;
@@ -90,7 +92,9 @@ namespace CrocobyGraph {
       ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
 
       if (ImGui::Button("Delete")) {
-        ecs.get_scene().get_registry().destroy(selection.begin(), selection.end());
+        for (auto& select : selection) {
+          registry.destroy(select);
+        }
         selection.clear();
       }
     }

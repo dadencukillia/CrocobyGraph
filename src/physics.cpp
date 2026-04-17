@@ -131,11 +131,11 @@ namespace CrocobyGraph {
     }
 
     // Move jelly points
+    float threshold = 0.5f;
     for (auto [entity, node, pos, velocity, jelly] : registry.view<const NodeEntity, const PositionComponent, const VelocityComponent, JellyComponent>().each()) {
       float vel_value = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y) + 0.01f;
       Vector2 vel_dir = { velocity.x / vel_value, velocity.y / vel_value };
       bool is_nearly_ideal = true;
-      float threshold = 0.1f;
 
       for (size_t i = 0; i < jelly_points; ++i) {
         auto& point_dir = jelly_ideal_points[i];
