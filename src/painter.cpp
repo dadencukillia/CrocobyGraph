@@ -36,7 +36,7 @@ namespace CrocobyGraph {
   }
 
   void Painter::draw_edge(Vector2 from, Vector2 to, Color color, EdgeCurveType curve) const {
-    float thickness = 3.0f;
+    float thickness = 1.0f;
 
     switch (curve) {
     case EdgeCurveType::Linear:
@@ -57,7 +57,7 @@ namespace CrocobyGraph {
   }
 
   void Painter::draw_self_loop(Vector2 pos, Color color, double radius) const {
-    float thickness = 3.0f;
+    float thickness = 1.0f;
     float angle = std::atan2(pos.y, pos.x);
     float width = 30.0f * PI / 180.0f;
     float length = radius * 4.0f;
@@ -77,6 +77,8 @@ namespace CrocobyGraph {
   }
 
   void Painter::draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve) const {
+    float thickness = 1.0f;
+
     if (from.x == to.x && from.y == to.y) {
       uint32_t divisions = 64;
       float angle = std::atan2(from.y, from.x);
@@ -124,8 +126,8 @@ namespace CrocobyGraph {
     Vector2 first = { pos.x + static_cast<float>(cos(angle + sharpness)) * len, pos.y + static_cast<float>(sin(angle + sharpness)) * len };
     Vector2 second = { pos.x + static_cast<float>(cos(angle - sharpness)) * len, pos.y + static_cast<float>(sin(angle - sharpness)) * len };
 
-    DrawLineEx(pos, first, 3.0f, color);
-    DrawLineEx(pos, second, 3.0f, color);
+    DrawLineEx(pos, first, thickness, color);
+    DrawLineEx(pos, second, thickness, color);
   }
 
 }

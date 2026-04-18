@@ -4,5 +4,6 @@
 #include "../src/color.hpp"
 #include "../src/batch.hpp"
 #include "../src/layout.hpp"
+#include "../src/neural_network.hpp"
 
 #endif

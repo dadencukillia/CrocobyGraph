@@ -31,14 +31,21 @@ int main() {
   };
 
   std::vector<LGN> graphTwo = cg::layout_from_adjacency_matrix<3>(
-    nodes,
+    std::move(nodes),
     connections
   );
 
   cg::Batch decomposed { cg::decompose(std::move(graphOne)) };
+  cg::Batch neural_network { cg::neural_network({
+    "Age",
+    "Room",
+    "Gender"
+  }, { 10, 5, 5, 5, 5, 5, 5, 5 }, {
+    "Chance"
+  }) };
 
   cg::GraphECS ecs {};
-  ecs.get_scene().append(std::move(decomposed));
+  ecs.get_scene().append(std::move(neural_network));
   ecs.add_system(cg::get_window_system<cg::PhysicsFrame, cg::EditorFrame>());
   ecs.run_loop();
 

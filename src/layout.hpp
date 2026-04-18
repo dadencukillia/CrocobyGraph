@@ -20,7 +20,7 @@ namespace CrocobyGraph {
 
   template <unsigned int N>
   inline std::vector<LayoutGraphNode> layout_from_adjacency_matrix(
-    const std::string (&nodes)[N],
+    const std::string (&&nodes)[N],
     const bool (&connections)[N][N],
     const Color& colored = 0xFFFFFFFF
   ) {
@@ -31,7 +31,7 @@ namespace CrocobyGraph {
       LayoutGraphNode& node = layout.emplace_back();
 
       node.id = "node" + std::to_string(i + 1);
-      node.label = nodes[i];
+      node.label = std::move(nodes[i]);
       node.color = colored;
     }
 
