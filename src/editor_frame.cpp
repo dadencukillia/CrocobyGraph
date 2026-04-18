@@ -6,9 +6,11 @@
 #include "entt/entity/fwd.hpp"
 #include "imgui.h"
 #include "math.hpp"
+#include "physics_system.hpp"
 #include "raylib.h"
 #include "resources/editor_icons.hpp"
 #include <cassert>
+#include <iostream>
 #include <optional>
 #include <string_view>
 
@@ -87,7 +89,7 @@ namespace CrocobyGraph {
       if (current_node || current_edge || current_label) ImGui::Text("Select - left button\nCreate - right click");
     } else {
       ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
-      if (!drag.dragging) ImGui::Text("Hold right button to move");
+      if (!selection_drag.dragging && !current_edge) ImGui::Text("Hold right button to move");
 
       if (ImGui::Button("Delete")) {
         for (auto& select : selection) {
@@ -119,6 +121,7 @@ namespace CrocobyGraph {
 
     process_mode_toggle(toggle_view, toggle_node, toggle_edge, toggle_label);
     process_selection(info, ecs, current_view, current_node, current_edge, current_label);
+    process_motion(info, ecs, current_view, current_node, current_edge, current_label);
   }
 
   inline void EditorFrame::draw_mode_toolbar(bool& toggle_view, bool& toggle_node, bool& toggle_edge, bool& toggle_label, bool current_view, bool current_node, bool current_edge, bool current_label) {
@@ -143,7 +146,7 @@ namespace CrocobyGraph {
 
   inline void EditorFrame::process_mode_toggle(bool toggle_view, bool toggle_node, bool toggle_edge, bool toggle_label) {
     if (toggle_view || toggle_node || toggle_edge || toggle_label) {
-      drag.dragging = false;
+      selection_drag.dragging = false;
       selection.clear();
 
       if (toggle_view) {
@@ -159,24 +162,27 @@ namespace CrocobyGraph {
   }
 
   inline void EditorFrame::process_selection(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label) {
-    if (current_view) return;
+    if (current_view) {
+      selection_drag.dragging = false;
+      return;
+    }
 
     auto& registry = ecs.get_scene().get_registry();
 
-    if (info.left_button_down && !ImGui::GetIO().WantCaptureMouse) {
-      if (drag.dragging) {
-        drag.end_x = info.mouse_local_x;
-        drag.end_y = info.mouse_local_y;
+    if (info.left_button_down && !ImGui::GetIO().WantCaptureMouse && !motion_drag.dragging) {
+      if (selection_drag.dragging) {
+        selection_drag.end_x = info.mouse_local_x;
+        selection_drag.end_y = info.mouse_local_y;
       } else {
-        drag.dragging = true;
-        drag.start_x = info.mouse_local_x;
-        drag.start_y = info.mouse_local_y;
-        drag.end_x = info.mouse_local_x;
-        drag.end_y = info.mouse_local_y;
+        selection_drag.dragging = true;
+        selection_drag.start_x = info.mouse_local_x;
+        selection_drag.start_y = info.mouse_local_y;
+        selection_drag.end_x = info.mouse_local_x;
+        selection_drag.end_y = info.mouse_local_y;
       }
 
-      Vector2 corner_top_left = { std::min(drag.start_x, drag.end_x), std::min(drag.start_y, drag.end_y) };
-      Vector2 corner_bottom_right = { std::max(drag.start_x, drag.end_x), std::max(drag.start_y, drag.end_y) };
+      Vector2 corner_top_left = { std::min(selection_drag.start_x, selection_drag.end_x), std::min(selection_drag.start_y, selection_drag.end_y) };
+      Vector2 corner_bottom_right = { std::max(selection_drag.start_x, selection_drag.end_x), std::max(selection_drag.start_y, selection_drag.end_y) };
 
       Vector2 translated_corner = translate_world_to_screen_coordinates(corner_top_left, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) });
       Vector2 translated_size = { (corner_bottom_right.x - corner_top_left.x) * info.camera_zoom, (corner_bottom_right.y - corner_top_left.y) * info.camera_zoom };
@@ -207,7 +213,7 @@ namespace CrocobyGraph {
         selection.insert(temp_select);
       }
       temp_selection.clear();
-      drag.dragging = false;
+      selection_drag.dragging = false;
     }
 
     if (current_node) {
@@ -223,6 +229,43 @@ namespace CrocobyGraph {
           );
         }
       }
+    }
+  }
+
+  inline void EditorFrame::process_motion(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label) {
+    if (selection.empty() || selection_drag.dragging || current_view || current_edge || selection.empty()) {
+      motion_drag.dragging = false;
+      return;
+    }
+
+    auto& registry = ecs.get_scene().get_registry();
+
+    if (info.right_button_down) {
+      if (motion_drag.dragging) {
+        for (auto& select_entity : selection) {
+          if (!registry.valid(select_entity)) continue;
+          auto& pos = registry.get<PositionComponent>(select_entity);
+          pos.x += info.mouse_local_x - motion_drag.end_x;
+          pos.y += info.mouse_local_y - motion_drag.end_y;
+
+          if (registry.all_of<VelocityComponent>(select_entity)) {
+            auto& vel = registry.get<VelocityComponent>(select_entity);
+            vel.x = 0.0f;
+            vel.y = 0.0f;
+          }
+        }
+
+        motion_drag.end_x = info.mouse_local_x;
+        motion_drag.end_y = info.mouse_local_y;
+      } else {
+        motion_drag.dragging = true;
+        motion_drag.start_x = info.mouse_local_x;
+        motion_drag.start_y = info.mouse_local_y;
+        motion_drag.end_x = info.mouse_local_x;
+        motion_drag.end_y = info.mouse_local_y;
+      }
+    } else {
+      motion_drag.dragging = false;
     }
   }
 

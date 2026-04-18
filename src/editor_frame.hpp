@@ -28,13 +28,15 @@ namespace CrocobyGraph {
   class EditorFrame : public WindowUIFrame {
     IconTextures* textures { nullptr };
     EditMode editor_mode { EditMode::View };
-    DragState drag {};
+    DragState selection_drag {};
+    DragState motion_drag {};
     std::unordered_set<entt::entity> selection;
     std::unordered_set<entt::entity> temp_selection;
 
     void draw_mode_toolbar(bool& toggle_view, bool& toggle_node, bool& toggle_edge, bool& toggle_label, bool current_view, bool current_node, bool current_edge, bool current_label);
     void process_mode_toggle(bool toggle_view, bool toggle_node, bool toggle_edge, bool toggle_label);
     void process_selection(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label);
+    void process_motion(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label);
 
   public:
     EditorFrame() = default;
