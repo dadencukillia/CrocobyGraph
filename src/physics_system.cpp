@@ -37,7 +37,7 @@ namespace CrocobyGraph {
     auto system = std::make_unique<PhysicsSystem>();
     if (!jelly_effect) system->no_jelly();
 
-    return std::move(system);
+    return system;
   }
 
 }

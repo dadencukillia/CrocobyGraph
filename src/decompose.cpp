@@ -67,7 +67,7 @@ namespace CrocobyGraph {
       batch.add_edge(static_cast<EdgeBundle>(v));
     }
 
-    return std::move(batch);
+    return batch;
   }
 
 }

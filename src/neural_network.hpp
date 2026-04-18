@@ -37,7 +37,7 @@ namespace CrocobyGraph {
         .label = std::move(in_names[in]),
         .color = { 0x000000FF }
       });
-      prev_layer_neurons.push_back(std::move(id));
+      prev_layer_neurons.push_back(id);
     }
 
     for (unsigned int hidden_layer = 0; hidden_layer < HIDDEN_LAYERS_COUNT; ++hidden_layer) {
@@ -93,7 +93,7 @@ namespace CrocobyGraph {
       }
     }
 
-    return std::move(batch);
+    return batch;
   }
 
 }
