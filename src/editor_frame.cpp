@@ -2,7 +2,6 @@
 #include "components.hpp"
 #include "ecs.hpp"
 #include "entities.hpp"
-#include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
 #include "imgui.h"
 #include "math.hpp"
@@ -10,6 +9,7 @@
 #include "raylib.h"
 #include "resources/editor_icons.hpp"
 #include <cassert>
+#include <cstdint>
 #include <iostream>
 #include <optional>
 #include <string_view>
@@ -80,17 +80,12 @@ namespace CrocobyGraph {
 
     ImGui::Begin("Editor");
 
-    ImGui::Text("x: %d, y: %d", static_cast<int>(info.mouse_local_x), static_cast<int>(info.mouse_local_y));
+    ImGui::Text("CURSOR x: %d, y: %d", static_cast<int>(info.mouse_local_x), static_cast<int>(info.mouse_local_y));
 
     bool toggle_view, toggle_node, toggle_edge, toggle_label;
     draw_mode_toolbar(toggle_view, toggle_node, toggle_edge, toggle_label, current_view, current_node, current_edge, current_label);
 
-    if (selection.empty() && temp_selection.empty()) {
-      if (current_node || current_edge || current_label) ImGui::Text("Select - left button\nCreate - right click");
-    } else {
-      ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
-      if (!selection_drag.dragging && !current_edge) ImGui::Text("Hold right button to move");
-
+    if (!selection.empty() || !temp_selection.empty()) {
       if (ImGui::Button("Delete")) {
         for (auto& select : selection) {
           registry.destroy(select);
@@ -98,30 +93,79 @@ namespace CrocobyGraph {
         selection.clear();
       }
 
-      if (selection.size() == 2) {
-        auto edge_connection = get_node_connection(registry, *selection.begin(), *std::next(selection.begin()));
-        ImGui::SameLine();
-        if (edge_connection.has_value()) {
-          if (ImGui::Button("Disconnect")) {
-            registry.destroy(edge_connection.value());
-          }
-        } else {
-          if (ImGui::Button("Connect")) {
-            auto entity = registry.create();
-            registry.emplace<EdgeEntity>(entity, EdgeEntity {
-              .node_start = *selection.begin(),
-              .node_end = *std::next(selection.begin()),
-            });
-          }
-        }
-      }
+      ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
     }
+
+    if (current_node) draw_node_specific_toolbar(info, ecs);
 
     ImGui::End();
 
     process_mode_toggle(toggle_view, toggle_node, toggle_edge, toggle_label);
     process_selection(info, ecs, current_view, current_node, current_edge, current_label);
     process_motion(info, ecs, current_view, current_node, current_edge, current_label);
+  }
+
+  inline void EditorFrame::draw_node_specific_toolbar(const WindowInfo& info, GraphECS& ecs) {
+    auto& registry = ecs.get_scene().get_registry();
+
+    if (selection.empty() && temp_selection.empty()) {
+      ImGui::Text("Left button - selection\nRight click - creation\nRight drag - grabbing");
+    } if (selection.size() == 1) {
+      auto [node, pos] = registry.get<NodeEntity, const PositionComponent>(*selection.begin());
+
+      ImGui::Text("NODE x: %d, y: %d", static_cast<int>(pos.x), static_cast<int>(pos.y));
+
+      float rgba[] = { 
+        static_cast<float>(node.color.get_red()) / 255.0f,
+        static_cast<float>(node.color.get_green()) / 255.0f,
+        static_cast<float>(node.color.get_blue()) / 255.0f,
+        static_cast<float>(node.color.get_alpha()) / 255.0f
+      };
+
+      if (ImGui::ColorEdit4("Color", rgba)) prevent_selection_dying = true;
+
+      node.color = { 
+        static_cast<uint8_t>(rgba[0] * 255.0f),
+        static_cast<uint8_t>(rgba[1] * 255.0f),
+        static_cast<uint8_t>(rgba[2] * 255.0f),
+        static_cast<uint8_t>(rgba[3] * 255.0f)
+      };
+
+      float radius = static_cast<float>(node.radius);
+      ImGui::SliderFloat("Radius", &radius, 5.0f, 100.0f);
+      node.radius = radius;
+
+      auto self_loop = get_node_connection(registry, *selection.begin(), *selection.begin());
+      if (self_loop.has_value()) {
+        if (ImGui::Button("Remove self-loop")) {
+          registry.destroy(self_loop.value());
+        }
+      } else {
+        if (ImGui::Button("Add self-loop")) {
+          auto entity = registry.create();
+          registry.emplace<EdgeEntity>(entity, EdgeEntity {
+            .node_start = *selection.begin(),
+            .node_end = *selection.begin(),
+          });
+        }
+      }
+    } if (selection.size() == 2) {
+      ImGui::SameLine();
+      auto edge_connection = get_node_connection(registry, *selection.begin(), *std::next(selection.begin()));
+      if (edge_connection.has_value()) {
+        if (ImGui::Button("Disconnect")) {
+          registry.destroy(edge_connection.value());
+        }
+      } else {
+        if (ImGui::Button("Connect")) {
+          auto entity = registry.create();
+          registry.emplace<EdgeEntity>(entity, EdgeEntity {
+            .node_start = *selection.begin(),
+            .node_end = *std::next(selection.begin()),
+          });
+        }
+      }
+    }
   }
 
   inline void EditorFrame::draw_mode_toolbar(bool& toggle_view, bool& toggle_node, bool& toggle_edge, bool& toggle_label, bool current_view, bool current_node, bool current_edge, bool current_label) {
@@ -214,6 +258,11 @@ namespace CrocobyGraph {
       }
       temp_selection.clear();
       selection_drag.dragging = false;
+    }
+
+    if (prevent_selection_dying) {
+      prevent_selection_dying = false;
+      return;
     }
 
     if (current_node) {
