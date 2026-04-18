@@ -67,4 +67,21 @@ namespace CrocobyGraph {
     return approximately_circle_intersection(spline_segments, circle_radius, circle_center, spline_dot_function, left, spline_segments - 1);
   }
 
+  bool check_point_in_rect(Vector2 point, Vector2 rect_top_left, Vector2 rect_bottom_right) {
+    return rect_top_left.x <= point.x && rect_top_left.y <= point.y && rect_bottom_right.x >= point.x && rect_bottom_right.y >= point.y;
+  }
+
+  bool check_rect_collision_line(Vector2 line_start, Vector2 line_end, Vector2 rect_top_left, Vector2 rect_bottom_right) {
+    if (check_point_in_rect(line_start, rect_top_left, rect_bottom_right)) return true;
+    if (check_point_in_rect(line_end, rect_top_left, rect_bottom_right)) return true;
+
+    Vector2 t;
+    if (CheckCollisionLines(line_start, line_end, rect_top_left, { rect_bottom_right.x, rect_top_left.y }, &t)) return true;
+    if (CheckCollisionLines(line_start, line_end, { rect_bottom_right.x, rect_top_left.y }, rect_bottom_right, &t)) return true;
+    if (CheckCollisionLines(line_start, line_end, rect_bottom_right, { rect_top_left.x, rect_bottom_right.y }, &t)) return true;
+    if (CheckCollisionLines(line_start, line_end, { rect_top_left.x, rect_bottom_right.y }, rect_top_left, &t)) return true;
+
+    return false;
+  }
+
 }

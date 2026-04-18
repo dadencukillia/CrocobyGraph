@@ -247,14 +247,35 @@ namespace CrocobyGraph {
 
       DrawRectangleLinesEx(Rectangle { translated_corner.x, translated_corner.y, translated_size.x, translated_size.y }, 1.0f, { 0, 0, 180, 100 });
 
+      if (IsKeyUp(KEY_LEFT_CONTROL) && IsKeyUp(KEY_LEFT_SHIFT)) {
+        selection.clear();
+      }
+      temp_selection.clear();
+
       if (current_node) {
-        if (IsKeyUp(KEY_LEFT_CONTROL) && IsKeyUp(KEY_LEFT_SHIFT)) {
-          selection.clear();
-        }
-        temp_selection.clear();
         for (auto [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
           if (pos.x + node.radius >= corner_top_left.x && pos.x - node.radius <= corner_bottom_right.x && pos.y + node.radius >= corner_top_left.y && pos.y - node.radius <= corner_bottom_right.y) {
             if (!selection.contains(entity)) {
+              temp_selection.insert(entity);
+            }
+          }
+        }
+      } else if (current_edge) {
+        float threshold = 5.0f;
+        if (corner_bottom_right.x - corner_top_left.x > 5.0f || corner_bottom_right.y - corner_top_left.y > 5.0f) {
+          threshold = 0.0f;
+        }
+
+        for (auto [entity, edge] : registry.view<const EdgeEntity>().each()) {
+          auto pos_a = registry.get<const PositionComponent>(edge.node_start);
+          auto pos_b = registry.get<const PositionComponent>(edge.node_end);
+
+          if (!selection.contains(entity)) {
+            if (check_rect_collision_line(
+              { pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, 
+              { corner_top_left.x - threshold, corner_top_left.y - threshold }, 
+              { corner_bottom_right.x + threshold, corner_bottom_right.y + threshold }
+            )) {
               temp_selection.insert(entity);
             }
           }
@@ -273,16 +294,26 @@ namespace CrocobyGraph {
       return;
     }
 
-    if (current_node) {
-      for (auto* selection_list : { &selection, &temp_selection }) {
-        for (auto& selected : *selection_list) {
-          if (!registry.valid(selected)) continue;
+    for (auto* selection_list : { &selection, &temp_selection }) {
+      for (auto& selected : *selection_list) {
+        if (!registry.valid(selected)) continue;
 
+        if (current_node) {
           auto [node, pos] = registry.get<const NodeEntity, const PositionComponent>(selected);
 
           DrawCircleV(
             translate_world_to_screen_coordinates({ pos.x, pos.y }, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) }), 
             node.radius * info.camera_zoom, { 0, 0, 180, 100 }
+          );
+        } else if (current_edge) {
+          auto edge = registry.get<const EdgeEntity>(selected);
+          auto pos_a = registry.get<const PositionComponent>(edge.node_start);
+          auto pos_b = registry.get<const PositionComponent>(edge.node_end);
+
+          DrawLineEx(
+            translate_world_to_screen_coordinates({ pos_a.x, pos_a.y }, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) }), 
+            translate_world_to_screen_coordinates({ pos_b.x, pos_b.y }, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) }), 
+            info.camera_zoom * 2.0f, { 0, 0, 180, 100 }
           );
         }
       }
