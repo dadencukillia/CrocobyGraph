@@ -5,7 +5,6 @@
 #include "entt/entity/fwd.hpp"
 #include "window_system.hpp"
 #include <unordered_set>
-#include <vector>
 
 namespace CrocobyGraph {
 
@@ -33,6 +32,10 @@ namespace CrocobyGraph {
     std::unordered_set<entt::entity> selection;
     std::unordered_set<entt::entity> temp_selection;
 
+    void draw_mode_toolbar(bool& toggle_view, bool& toggle_node, bool& toggle_edge, bool& toggle_label, bool current_view, bool current_node, bool current_edge, bool current_label);
+    void process_mode_toggle(bool toggle_view, bool toggle_node, bool toggle_edge, bool toggle_label);
+    void process_selection(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label);
+
   public:
     EditorFrame() = default;
     EditorFrame(const EditorFrame&) = delete;
@@ -41,9 +44,6 @@ namespace CrocobyGraph {
 
     void load(GraphECS& ecs) override;
     void draw(const WindowInfo& info, GraphECS& ecs) override;
-
-    void process_mode_toggle(bool toggle_view, bool toggle_node, bool toggle_edge, bool toggle_label);
-    void process_selection(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label);
   };
 
 }

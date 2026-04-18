@@ -34,6 +34,8 @@ namespace CrocobyGraph {
   }
 
   void Physics::update(double delta) {
+    move(delta);
+    if (with_jelly) update_jelly(delta);
     auto& registry = scene->get_registry();
 
     for (auto [entity, node] : registry.view<NodeEntity>(entt::exclude<VelocityComponent, RepulsionComponent>).each()) {
@@ -42,8 +44,6 @@ namespace CrocobyGraph {
     }
 
     update_velocity(delta);
-    move(delta);
-    if (with_jelly) update_jelly(delta);
   }
 
   void Physics::update_velocity(double delta) {

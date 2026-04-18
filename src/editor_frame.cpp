@@ -3,11 +3,13 @@
 #include "ecs.hpp"
 #include "entities.hpp"
 #include "entt/entity/entity.hpp"
+#include "entt/entity/fwd.hpp"
 #include "imgui.h"
 #include "math.hpp"
 #include "raylib.h"
 #include "resources/editor_icons.hpp"
 #include <cassert>
+#include <optional>
 #include <string_view>
 
 namespace CrocobyGraph {
@@ -46,6 +48,16 @@ namespace CrocobyGraph {
     UnloadImage(label_image);
   }
 
+  inline std::optional<entt::entity> get_node_connection(const entt::registry& registry, const entt::entity& node_a, const entt::entity& node_b) {
+    for (auto [entity, edge] : registry.view<EdgeEntity>()->each()) {
+      if ((edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a)) {
+        return entity;
+      }
+    }
+
+    return std::nullopt;
+  }
+
   bool draw_toggle_icon_button(const char* str_id, unsigned int tex_id, ImVec2 size, bool on) {
     if (on) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
     auto clicked = ImGui::ImageButton(str_id, static_cast<ImTextureID>(tex_id), size);
@@ -68,13 +80,55 @@ namespace CrocobyGraph {
 
     ImGui::Text("x: %d, y: %d", static_cast<int>(info.mouse_local_x), static_cast<int>(info.mouse_local_y));
 
-    auto toggle_view = draw_toggle_icon_button("editor_view_icon", static_cast<ImTextureID>(textures->view_icon.id), ImVec2(24.0f, 24.0f), current_view) && !current_view;
+    bool toggle_view, toggle_node, toggle_edge, toggle_label;
+    draw_mode_toolbar(toggle_view, toggle_node, toggle_edge, toggle_label, current_view, current_node, current_edge, current_label);
+
+    if (selection.empty() && temp_selection.empty()) {
+      if (current_node || current_edge || current_label) ImGui::Text("Select - left button\nCreate - right click");
+    } else {
+      ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
+      if (!drag.dragging) ImGui::Text("Hold right button to move");
+
+      if (ImGui::Button("Delete")) {
+        for (auto& select : selection) {
+          registry.destroy(select);
+        }
+        selection.clear();
+      }
+
+      if (selection.size() == 2) {
+        auto edge_connection = get_node_connection(registry, *selection.begin(), *std::next(selection.begin()));
+        ImGui::SameLine();
+        if (edge_connection.has_value()) {
+          if (ImGui::Button("Disconnect")) {
+            registry.destroy(edge_connection.value());
+          }
+        } else {
+          if (ImGui::Button("Connect")) {
+            auto entity = registry.create();
+            registry.emplace<EdgeEntity>(entity, EdgeEntity {
+              .node_start = *selection.begin(),
+              .node_end = *std::next(selection.begin()),
+            });
+          }
+        }
+      }
+    }
+
+    ImGui::End();
+
+    process_mode_toggle(toggle_view, toggle_node, toggle_edge, toggle_label);
+    process_selection(info, ecs, current_view, current_node, current_edge, current_label);
+  }
+
+  inline void EditorFrame::draw_mode_toolbar(bool& toggle_view, bool& toggle_node, bool& toggle_edge, bool& toggle_label, bool current_view, bool current_node, bool current_edge, bool current_label) {
+    toggle_view = draw_toggle_icon_button("editor_view_icon", static_cast<ImTextureID>(textures->view_icon.id), ImVec2(24.0f, 24.0f), current_view) && !current_view;
     ImGui::SameLine();
-    auto toggle_node = draw_toggle_icon_button("editor_node_icon", static_cast<ImTextureID>(textures->node_icon.id), ImVec2(24.0f, 24.0f), current_node) && !current_node;
+    toggle_node = draw_toggle_icon_button("editor_node_icon", static_cast<ImTextureID>(textures->node_icon.id), ImVec2(24.0f, 24.0f), current_node) && !current_node;
     ImGui::SameLine();
-    auto toggle_edge = draw_toggle_icon_button("editor_edge_icon", static_cast<ImTextureID>(textures->edge_icon.id), ImVec2(24.0f, 24.0f), current_edge) && !current_edge;
+    toggle_edge = draw_toggle_icon_button("editor_edge_icon", static_cast<ImTextureID>(textures->edge_icon.id), ImVec2(24.0f, 24.0f), current_edge) && !current_edge;
     ImGui::SameLine();
-    auto toggle_label = draw_toggle_icon_button("editor_label_icon", static_cast<ImTextureID>(textures->label_icon.id), ImVec2(24.0f, 24.0f), current_label) && !current_label;
+    toggle_label = draw_toggle_icon_button("editor_label_icon", static_cast<ImTextureID>(textures->label_icon.id), ImVec2(24.0f, 24.0f), current_label) && !current_label;
 
     std::string_view mode_name = "";
     switch (editor_mode) {
@@ -85,24 +139,6 @@ namespace CrocobyGraph {
     }
 
     ImGui::Text("Mode: %s", mode_name.data());
-
-    if (selection.empty() && temp_selection.empty()) {
-      if (current_node || current_edge || current_label) ImGui::Text("Select - left button\nCreate - right click");
-    } else {
-      ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
-
-      if (ImGui::Button("Delete")) {
-        for (auto& select : selection) {
-          registry.destroy(select);
-        }
-        selection.clear();
-      }
-    }
-
-    ImGui::End();
-
-    process_mode_toggle(toggle_view, toggle_node, toggle_edge, toggle_label);
-    process_selection(info, ecs, current_view, current_node, current_edge, current_label);
   }
 
   inline void EditorFrame::process_mode_toggle(bool toggle_view, bool toggle_node, bool toggle_edge, bool toggle_label) {
