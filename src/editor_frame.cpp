@@ -10,7 +10,6 @@
 #include "resources/editor_icons.hpp"
 #include <cassert>
 #include <cstdint>
-#include <iostream>
 #include <optional>
 #include <string_view>
 
@@ -78,31 +77,35 @@ namespace CrocobyGraph {
     auto current_edge = editor_mode == EditMode::Edge;
     auto current_label = editor_mode == EditMode::Label;
 
-    ImGui::Begin("Editor");
+    ImGui::Begin("Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::Text("CURSOR x: %d, y: %d", static_cast<int>(info.mouse_local_x), static_cast<int>(info.mouse_local_y));
 
     bool toggle_view, toggle_node, toggle_edge, toggle_label;
     draw_mode_toolbar(toggle_view, toggle_node, toggle_edge, toggle_label, current_view, current_node, current_edge, current_label);
 
-    if (!selection.empty() || !temp_selection.empty()) {
-      if (ImGui::Button("Delete")) {
-        for (auto& select : selection) {
-          registry.destroy(select);
+    if (current_view) {
+      ImGui::Text("Nothing happens special\nin the view mode");
+    } else {
+      if (!selection.empty() || !temp_selection.empty()) {
+        if (ImGui::Button("Delete")) {
+          for (auto& select : selection) {
+            registry.destroy(select);
+          }
+          selection.clear();
         }
-        selection.clear();
+
+        ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
       }
 
-      ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
+      if (current_node) draw_node_specific_toolbar(info, ecs);
+
+      process_selection(info, ecs, current_node, current_edge, current_label);
+      process_motion(info, ecs, current_node, current_edge, current_label);
     }
 
-    if (current_node) draw_node_specific_toolbar(info, ecs);
-
     ImGui::End();
-
     process_mode_toggle(toggle_view, toggle_node, toggle_edge, toggle_label);
-    process_selection(info, ecs, current_view, current_node, current_edge, current_label);
-    process_motion(info, ecs, current_view, current_node, current_edge, current_label);
   }
 
   inline void EditorFrame::draw_node_specific_toolbar(const WindowInfo& info, GraphECS& ecs) {
@@ -110,7 +113,17 @@ namespace CrocobyGraph {
 
     if (selection.empty() && temp_selection.empty()) {
       ImGui::Text("Left button - selection\nRight click - creation\nRight drag - grabbing");
-    } if (selection.size() == 1) {
+
+      if (!selection_drag.dragging && !motion_drag.dragging) {
+        if (info.right_button_down) {
+          auto entity = registry.create();
+          registry.emplace<NodeEntity>(entity, NodeEntity {});
+          registry.emplace<PositionComponent>(entity, info.mouse_local_x, info.mouse_local_y);
+
+          selection.insert(entity);
+        }
+      }
+    } else if (selection.size() == 1) {
       auto [node, pos] = registry.get<NodeEntity, const PositionComponent>(*selection.begin());
 
       ImGui::Text("NODE x: %d, y: %d", static_cast<int>(pos.x), static_cast<int>(pos.y));
@@ -149,7 +162,7 @@ namespace CrocobyGraph {
           });
         }
       }
-    } if (selection.size() == 2) {
+    } else if (selection.size() == 2) {
       ImGui::SameLine();
       auto edge_connection = get_node_connection(registry, *selection.begin(), *std::next(selection.begin()));
       if (edge_connection.has_value()) {
@@ -205,12 +218,7 @@ namespace CrocobyGraph {
     }
   }
 
-  inline void EditorFrame::process_selection(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label) {
-    if (current_view) {
-      selection_drag.dragging = false;
-      return;
-    }
-
+  inline void EditorFrame::process_selection(const WindowInfo& info, GraphECS& ecs, bool current_node, bool current_edge, bool current_label) {
     auto& registry = ecs.get_scene().get_registry();
 
     if (info.left_button_down && !ImGui::GetIO().WantCaptureMouse && !motion_drag.dragging) {
@@ -281,8 +289,8 @@ namespace CrocobyGraph {
     }
   }
 
-  inline void EditorFrame::process_motion(const WindowInfo& info, GraphECS& ecs, bool current_view, bool current_node, bool current_edge, bool current_label) {
-    if (selection.empty() || selection_drag.dragging || current_view || current_edge || selection.empty()) {
+  inline void EditorFrame::process_motion(const WindowInfo& info, GraphECS& ecs, bool current_node, bool current_edge, bool current_label) {
+    if (selection.empty() || selection_drag.dragging || current_edge || selection.empty()) {
       motion_drag.dragging = false;
       return;
     }
