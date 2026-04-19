@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "entities.hpp"
 #include "entt/entt.hpp"
+#include "math.hpp"
 #include "physics_system.hpp"
 #include "raylib.h"
 #include "imgui.h"
@@ -93,6 +94,9 @@ namespace CrocobyGraph {
 
     auto& registry = scene->get_registry();
 
+    Vector2 camera_top_left { window_states.camera_border_left, window_states.camera_border_top };
+    Vector2 camera_bottom_right { window_states.camera_border_right, window_states.camera_border_bottom };
+
     // Store nodes in maps
     for (auto [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
       positions.insert({ entity, pos });
@@ -118,7 +122,7 @@ namespace CrocobyGraph {
         float border_top = std::min(a.y, corner.y);
         float border_bottom = std::max(a.y, corner.y);
 
-        if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
+        if (!check_rect_a_in_rect_b({ border_left, border_top }, { border_right, border_bottom }, camera_top_left, camera_bottom_right)) continue;
 
         painter.draw_self_loop({ a.x, a.y }, edge.color, nodes[edge.node_start].radius);
 
@@ -134,7 +138,7 @@ namespace CrocobyGraph {
         float border_top = std::min(a.y, b.y) - 3.5f * window_states.camera_zoom;
         float border_bottom = std::max(a.y, b.y) + 3.5f * window_states.camera_zoom;
 
-        if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
+        if (!check_rect_a_in_rect_b({ border_left, border_top }, { border_right, border_bottom }, camera_top_left, camera_bottom_right)) continue;
 
         painter.draw_edge({ a.x, a.y }, { b.x, b.y }, edge.color, edge.curve_type);
 
@@ -168,7 +172,7 @@ namespace CrocobyGraph {
           border_bottom = std::max(point.y, border_bottom);
         }
 
-        if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
+        if (!check_rect_a_in_rect_b({ border_left, border_top }, { border_right, border_bottom }, camera_top_left, camera_bottom_right)) continue;
 
         painter.draw_jelly_node(jelly.points, { pos.x, pos.y }, node.color);
       } else {
@@ -177,7 +181,7 @@ namespace CrocobyGraph {
         float border_top = pos.y - node.radius;
         float border_bottom = pos.y + node.radius;
 
-        if (border_left > window_states.camera_border_right || border_right < window_states.camera_border_left || border_top > window_states.camera_border_bottom || border_bottom < window_states.camera_border_top) continue;
+        if (!check_rect_a_in_rect_b({ border_left, border_top }, { border_right, border_bottom }, camera_top_left, camera_bottom_right)) continue;
 
         painter.draw_node({ pos.x, pos.y }, node.color, node.radius);
       }

@@ -73,7 +73,6 @@ namespace CrocobyGraph {
 
   bool check_rect_collision_line(Vector2 line_start, Vector2 line_end, Vector2 rect_top_left, Vector2 rect_bottom_right) {
     if (check_point_in_rect(line_start, rect_top_left, rect_bottom_right)) return true;
-    if (check_point_in_rect(line_end, rect_top_left, rect_bottom_right)) return true;
 
     Vector2 t;
     if (CheckCollisionLines(line_start, line_end, rect_top_left, { rect_bottom_right.x, rect_top_left.y }, &t)) return true;
@@ -82,6 +81,10 @@ namespace CrocobyGraph {
     if (CheckCollisionLines(line_start, line_end, { rect_top_left.x, rect_bottom_right.y }, rect_top_left, &t)) return true;
 
     return false;
+  }
+
+  bool check_rect_a_in_rect_b(Vector2 rect_a_top_left, Vector2 rect_a_bottom_right, Vector2 rect_b_top_left, Vector2 rect_b_bottom_right) {
+    return rect_a_top_left.x <= rect_b_bottom_right.x && rect_a_bottom_right.x >= rect_b_top_left.x && rect_a_top_left.y <= rect_b_bottom_right.y && rect_a_bottom_right.y >= rect_b_top_left.y;
   }
 
 }
