@@ -95,17 +95,126 @@ namespace CrocobyGraph {
           selection.clear();
         }
 
+        ImGui::SameLine();
+        if (ImGui::Button("Deselect")) {
+          selection.clear();
+        }
+
         ImGui::Text("Selected: %lu", selection.size() + temp_selection.size());
       }
 
-      if (current_node) draw_node_specific_toolbar(info, ecs);
-
       process_selection(info, ecs, current_node, current_edge, current_label);
       process_motion(info, ecs, current_node, current_edge, current_label);
+
+      if (current_node) draw_node_specific_toolbar(info, ecs);
+      else if (current_edge) draw_edge_specific_toolbar(info, ecs);
     }
 
     ImGui::End();
     process_mode_toggle(toggle_view, toggle_node, toggle_edge, toggle_label);
+  }
+
+  inline void EditorFrame::draw_edge_specific_toolbar(const WindowInfo& info, GraphECS& ecs) {
+    auto& registry = ecs.get_scene().get_registry();
+
+    if (selection.empty() && temp_selection.empty()) {
+      ImGui::Text("Left button - selection");
+    } else {
+      if (ImGui::Button("<    Add arrow")) {
+        for (auto& entity : selection) {
+          auto& edge = registry.get<EdgeEntity>(entity);
+          edge.arrow_on_start = true;
+        }
+      }
+
+      ImGui::SameLine();
+      if (ImGui::Button("Add arrow    >")) {
+        for (auto& entity : selection) {
+          auto& edge = registry.get<EdgeEntity>(entity);
+          edge.arrow_on_end = true;
+        }
+      }
+
+      if (ImGui::Button("< Remove arrow")) {
+        for (auto& entity : selection) {
+          auto& edge = registry.get<EdgeEntity>(entity);
+          edge.arrow_on_start = false;
+        }
+      }
+
+      ImGui::SameLine();
+      if (ImGui::Button("Remove arrow >")) {
+        for (auto& entity : selection) {
+          auto& edge = registry.get<EdgeEntity>(entity);
+          edge.arrow_on_end = false;
+        }
+      }
+
+      if (ImGui::Button("Divide")) {
+        Batch batch {};
+        for (auto& entity : selection) {
+          auto edge = registry.get<EdgeEntity>(entity);
+          auto pos_a = registry.get<PositionComponent>(edge.node_start);
+          auto pos_b = registry.get<PositionComponent>(edge.node_end);
+
+          auto node = batch.add_node({
+            .position = { (pos_a.x + pos_b.x) * 0.5f, (pos_a.y + pos_b.y) * 0.5f }
+          });
+
+          batch.add_edge({
+            .node_start = edge.node_start,
+            .node_end = node,
+            .arrow_on_start = edge.arrow_on_start,
+          });
+          batch.add_edge({
+            .node_start = node,
+            .node_end = edge.node_end,
+            .arrow_on_end = edge.arrow_on_end,
+          });
+
+          registry.destroy(entity);
+        }
+
+        selection.clear();
+        ecs.get_scene().append(std::move(batch));
+      }
+    }
+
+    if (selection.size() == 1) {
+      auto& edge = registry.get<EdgeEntity>(*selection.begin());
+
+      float rgba[] = { 
+        static_cast<float>(edge.color.get_red()) / 255.0f,
+        static_cast<float>(edge.color.get_green()) / 255.0f,
+        static_cast<float>(edge.color.get_blue()) / 255.0f,
+        static_cast<float>(edge.color.get_alpha()) / 255.0f
+      };
+
+      if (ImGui::ColorEdit4("Color", rgba)) prevent_selection_dying = true;
+
+      edge.color = { 
+        static_cast<uint8_t>(rgba[0] * 255.0f),
+        static_cast<uint8_t>(rgba[1] * 255.0f),
+        static_cast<uint8_t>(rgba[2] * 255.0f),
+        static_cast<uint8_t>(rgba[3] * 255.0f)
+      };
+
+      const char* types[] = { "Linear", "Step", "Ease" };
+      int current_curve_type;
+      switch (edge.curve_type) {
+      case EdgeCurveType::Linear: current_curve_type = 0; break;
+      case EdgeCurveType::Step: current_curve_type = 1; break;
+      case EdgeCurveType::Ease: current_curve_type = 2; break;
+      };
+
+      ImGui::Combo("Curve type", &current_curve_type, types, 3);
+
+      switch (current_curve_type) {
+      case 0: edge.curve_type = EdgeCurveType::Linear; break;
+      case 1: edge.curve_type = EdgeCurveType::Step; break;
+      case 2: edge.curve_type = EdgeCurveType::Ease; break;
+      };
+    }
   }
 
   inline void EditorFrame::draw_node_specific_toolbar(const WindowInfo& info, GraphECS& ecs) {
@@ -169,6 +278,11 @@ namespace CrocobyGraph {
         if (ImGui::Button("Disconnect")) {
           registry.destroy(edge_connection.value());
         }
+        if (ImGui::Button("Select edge between")) {
+          editor_mode = EditMode::Edge;
+          selection.clear();
+          selection.insert(edge_connection.value());
+        }
       } else {
         if (ImGui::Button("Connect")) {
           auto entity = registry.create();
@@ -177,6 +291,21 @@ namespace CrocobyGraph {
             .node_end = *std::next(selection.begin()),
           });
         }
+      }
+    }
+
+    if (!selection.empty()) {
+      if (ImGui::Button("Select connected edges")) {
+        std::unordered_set<entt::entity> edges;
+
+        for (auto [entity, edge] : registry.view<EdgeEntity>().each()) {
+          if (selection.contains(edge.node_start) || selection.contains(edge.node_end)) {
+            edges.insert(entity);
+          }
+        }
+
+        selection = std::move(edges);
+        editor_mode = EditMode::Edge;
       }
     }
   }

@@ -36,6 +36,7 @@ namespace CrocobyGraph {
 
     void draw_mode_toolbar(bool& toggle_view, bool& toggle_node, bool& toggle_edge, bool& toggle_label, bool current_view, bool current_node, bool current_edge, bool current_label);
     void draw_node_specific_toolbar(const WindowInfo& info, GraphECS& ecs);
+    void draw_edge_specific_toolbar(const WindowInfo& info, GraphECS& ecs);
     void process_mode_toggle(bool toggle_view, bool toggle_node, bool toggle_edge, bool toggle_label);
     void process_selection(const WindowInfo& info, GraphECS& ecs, bool current_node, bool current_edge, bool current_label);
     void process_motion(const WindowInfo& info, GraphECS& ecs, bool current_node, bool current_edge, bool current_label);
