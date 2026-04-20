@@ -1,6 +1,7 @@
 #include "window.hpp"
 #include "color.hpp"
 #include "components.hpp"
+#include "config.hpp"
 #include "entities.hpp"
 #include "entt/entt.hpp"
 #include "math.hpp"
@@ -216,7 +217,7 @@ namespace CrocobyGraph {
       float distance_x = pos.x - window_states.camera_x;
       float distance_y = pos.y - window_states.camera_y;
       float distance = distance_x * distance_x + distance_y * distance_y;
-      float max_distance = 40'000.0f / window_states.camera_zoom;
+      float max_distance = LABELS_VISIBLE_DISTANCE * LABELS_VISIBLE_DISTANCE / (window_states.camera_zoom * window_states.camera_zoom);
 
       if (distance > max_distance) continue;
 

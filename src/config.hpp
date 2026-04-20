@@ -26,6 +26,7 @@ namespace CrocobyGraph {
 
   // Render
   inline constexpr float EDGES_THICKNESS { 1.0f };
+  inline constexpr float LABELS_VISIBLE_DISTANCE { 500.0f };
 
 }
 
