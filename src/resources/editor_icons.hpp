@@ -1,13 +1,13 @@
-#ifndef _CGRAPH_RESOURCES_OPEN_SANS_HPP_
-#define _CGRAPH_RESOURCES_OPEN_SANS_HPP_
+#ifndef _CGRAPH_RESOURCES_EDITOR_ICONS_HPP_
+#define _CGRAPH_RESOURCES_EDITOR_ICONS_HPP_
 
-#define INCBIN_PREFIX
-
-#include "incbin.h"
-
-INCBIN(EditorIconEye, EYE_ICON_PATH);
-INCBIN(EditorIconNode, NODE_ICON_PATH);
-INCBIN(EditorIconEdge, EDGE_ICON_PATH);
-INCBIN(EditorIconLabel, LABEL_ICON_PATH);
+extern const unsigned char EditorIconEyeData[];
+extern const unsigned int EditorIconEyeSize;
+extern const unsigned char EditorIconNodeData[];
+extern const unsigned int EditorIconNodeSize;
+extern const unsigned char EditorIconEdgeData[];
+extern const unsigned int EditorIconEdgeSize;
+extern const unsigned char EditorIconLabelData[];
+extern const unsigned int EditorIconLabelSize;
 
 #endif

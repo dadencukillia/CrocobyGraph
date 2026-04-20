@@ -13,21 +13,27 @@ find_package(raylib REQUIRED)
 find_package(imgui REQUIRED)
 find_package(rlImgui REQUIRED)
 find_package(entt REQUIRED)
-find_package(incbin REQUIRED)
 
-file(GLOB CGRAPH_SRC "src/*.cpp")
-add_library(CrocobyGraph ${CGRAPH_SRC})
+add_library(CrocobyGraph
+  ./src/resources/editor_icons.cpp
+  ./src/resources/open_sans.cpp
+  ./src/batch.cpp
+  ./src/color.cpp
+  ./src/decompose.cpp
+  ./src/ecs.cpp
+  ./src/editor_frame.cpp
+  ./src/math.cpp
+  ./src/painter.cpp
+  ./src/physics.cpp
+  ./src/physics_frame.cpp
+  ./src/physics_system.cpp
+  ./src/scene.cpp
+  ./src/window.cpp
+  ./src/window_system.cpp
+)
 
 target_include_directories(CrocobyGraph PUBLIC ./include)
-target_link_libraries(CrocobyGraph PUBLIC rlImGui entt incbin)
-
-target_compile_definitions(CrocobyGraph PRIVATE 
-  FONT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/OpenSans.ttf"
-  EYE_ICON_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/eye.png"
-  NODE_ICON_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/node.png"
-  EDGE_ICON_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/edge.png"
-  LABEL_ICON_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/resources/label.png"
-)
+target_link_libraries(CrocobyGraph PUBLIC rlImGui entt)
 
 # Demo executable
 

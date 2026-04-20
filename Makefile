@@ -4,8 +4,8 @@ GENERATOR := Ninja
 .SILENT: run
 .PHONY: clear configure_debug build_debug debug release run
 
-export CC := /usr/bin/clang
-export CXX := /usr/bin/clang++
+export CC := clang
+export CXX := clang++
 
 all: configure_debug build_debug run
 
@@ -13,7 +13,7 @@ clear:
 	rm -rf ./build
 
 configure_debug:
-	cmake -S. -B=build -G=${GENERATOR} -DCMAKE_BUILD_TYPE=Debug
+	cmake -S. -B=build -G=${GENERATOR} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC}
 
 build_debug:
 	cmake --build build -j 8 --config Debug
