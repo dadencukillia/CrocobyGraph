@@ -2,6 +2,7 @@
 #define _CGRAPH_NEURAL_NETWORK_HPP_
 
 #include "batch.hpp"
+#include "config.hpp"
 #include "entities.hpp"
 #include <cassert>
 #include <string>
@@ -12,23 +13,21 @@ namespace CrocobyGraph {
   inline Batch neural_network(
     const std::string (&&in_names)[IN_COUNT],
     const unsigned int (&hidden_neurons)[HIDDEN_LAYERS_COUNT],
-    const std::string (&&out_names)[OUT_COUNT]
+    const std::string (&&out_names)[OUT_COUNT],
+    float spacing_x = 7.0f * DEFAULT_NODE_RADIUS,
+    float spacing_y = 3.5f * DEFAULT_NODE_RADIUS
   ) {
     static_assert(IN_COUNT != 0);
     static_assert(OUT_COUNT != 0);
 
-    Batch batch {};
-
     unsigned int width = HIDDEN_LAYERS_COUNT + 1;
-    float spacing_x = 150.0f;
-    float spacing_y = 75.0f;
 
+    Batch batch {};
     std::vector<BeingCreatedEntity> prev_layer_neurons;
 
     for (unsigned int in = 0; in < IN_COUNT; ++in) {
       auto id = batch.add_node(NodeBundle {
         .color = { 0x00FF00FF },
-        .radius = 20.0f,
         .position = { 
           (spacing_x * width) / -2.0f,
           (static_cast<float>(in) - static_cast<float>(IN_COUNT - 1) * 0.5f) * spacing_y
@@ -48,7 +47,6 @@ namespace CrocobyGraph {
       for (unsigned int neuron = 0; neuron < neuron_counts; ++neuron) {
         current_layer_neurons[neuron] = batch.add_node(NodeBundle {
           .color = { 0xFFFFFFFF },
-          .radius = 20.0f,
           .position = {
             (static_cast<float>(hidden_layer + 1) - static_cast<float>(width) * 0.5f) * spacing_x,
             (static_cast<float>(neuron) - static_cast<float>(neuron_counts - 1) * 0.5f) * spacing_y,
@@ -72,7 +70,6 @@ namespace CrocobyGraph {
     for (unsigned int in = 0; in < OUT_COUNT; ++in) {
       auto id = batch.add_node(NodeBundle {
         .color = { 0xFF0000FF },
-        .radius = 20.0f,
         .position = { 
           (spacing_x * width) / 2.0f,
           (static_cast<float>(in) - static_cast<float>(OUT_COUNT - 1) * 0.5f) * spacing_y

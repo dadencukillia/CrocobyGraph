@@ -2,12 +2,12 @@
 #include "physics_system.hpp"
 #include "components.hpp"
 #include "entities.hpp"
+#include"config.hpp" 
 #include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
 #include "raylib.h"
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 #include <vector>
 
 namespace CrocobyGraph {
@@ -61,18 +61,16 @@ namespace CrocobyGraph {
       Vector2 vector = { a_pos.x - b_pos.x, a_pos.y - b_pos.y };
       float distance_square = vector.x * vector.x + vector.y * vector.y + 0.1f;
       float distance = std::sqrt(distance_square);
-      float k = 5.0f;
-      float ideal_distance = 200.0f;
-      float force = k * (distance - ideal_distance);
+      float force = PHYSICS_ATTRACTION_CONSTANT * (distance - PHYSICS_ATTRACTION_IDEAL_DISTANCE);
       Vector2 force_apply = {
         vector.x / distance * force,
         vector.y / distance * force
       };
 
-      b_vel.x += delta * 60.0f * force_apply.x / (b_node.radius * b_node.radius);
-      b_vel.y += delta * 60.0f * force_apply.y / (b_node.radius * b_node.radius);
-      a_vel.x -= delta * 60.0f * force_apply.x / (a_node.radius * a_node.radius);
-      a_vel.y -= delta * 60.0f * force_apply.y / (a_node.radius * a_node.radius);
+      b_vel.x += delta * TARGET_TPS * force_apply.x / (b_node.radius * b_node.radius);
+      b_vel.y += delta * TARGET_TPS * force_apply.y / (b_node.radius * b_node.radius);
+      a_vel.x -= delta * TARGET_TPS * force_apply.x / (a_node.radius * a_node.radius);
+      a_vel.y -= delta * TARGET_TPS * force_apply.y / (a_node.radius * a_node.radius);
     }
 
     for (auto [entity, node, pos, repulsion, velocity] : registry.view<const NodeEntity, const PositionComponent, const RepulsionComponent, VelocityComponent>().each()) {
@@ -86,26 +84,23 @@ namespace CrocobyGraph {
         Vector2 vector = { pos.x - another_pos.x, pos.y - another_pos.y };
         float distance_square = vector.x * vector.x + vector.y * vector.y + 0.1f;
         float distance = std::sqrt(distance_square);
-        float k = 1'000'000.0f;
-        float force = k * another_repulsion.charge * repulsion.charge / (distance_square * distance);
+        float force = PHYSICS_REPULSION_CONSTANT * another_repulsion.charge * repulsion.charge / (distance_square * distance);
         forces.x += vector.x * force;
         forces.y += vector.y * force;
       }
 
       // Gravity force
-      float g = 1.0f;
       float center_distance = std::sqrt(pos.x * pos.x + pos.y * pos.y) + 0.1f;
       Vector2 gravity_direction = { -pos.x / center_distance, -pos.y / center_distance };
-      forces.x += gravity_direction.x * g * mass;
-      forces.y += gravity_direction.y * g * mass;
+      forces.x += gravity_direction.x * PHYSICS_GRAVITY_CONSTANT * mass;
+      forces.y += gravity_direction.y * PHYSICS_GRAVITY_CONSTANT * mass;
 
       Vector2 acceleration = { forces.x / mass, forces.y / mass };
-      velocity.x += acceleration.x * delta * 60.0f;
-      velocity.y += acceleration.y * delta * 60.0f;
+      velocity.x += acceleration.x * delta * TARGET_TPS;
+      velocity.y += acceleration.y * delta * TARGET_TPS;
 
-      float friction = 1.5f;
-      velocity.x -= velocity.x * friction * delta;
-      velocity.y -= velocity.y * friction * delta;
+      velocity.x -= velocity.x * PHYSICS_FRICTION_CONSTANT * delta;
+      velocity.y -= velocity.y * PHYSICS_FRICTION_CONSTANT * delta;
     }
   }
 
@@ -127,7 +122,7 @@ namespace CrocobyGraph {
       if (velocity.x * velocity.x + velocity.y * velocity.y >= 900.0f) {
         std::vector<PositionComponent> points(jelly_points);
         for (size_t i = 0; i < jelly_points; ++i) {
-          points[i] = { pos.x + jelly_ideal_points[i].x * static_cast<float>(node.radius), pos.y + jelly_ideal_points[i].y * static_cast<float>(node.radius) };
+          points[i] = { pos.x + jelly_ideal_points[i].x * node.radius, pos.y + jelly_ideal_points[i].y * node.radius };
         }
 
         registry.emplace<JellyComponent>(entity, std::move(points));
@@ -145,15 +140,15 @@ namespace CrocobyGraph {
         auto& point_dir = jelly_ideal_points[i];
         float diff = vel_dir.x * point_dir.x + vel_dir.y * point_dir.y;
         float impact_mul = (diff + 1.0f) / 2.0f;
-        float total_mul = (impact_mul * impact_mul + 0.05f) * delta * 60;
+        float total_mul = (impact_mul * impact_mul + 0.05f) * delta * TARGET_TPS;
         Vector2 ideal_pos = { 
-          pos.x + point_dir.x * static_cast<float>(node.radius),
-          pos.y + point_dir.y * static_cast<float>(node.radius)
+          pos.x + point_dir.x * node.radius,
+          pos.y + point_dir.y * node.radius
         };
         float squish_factor = vel_value * 0.02f;
         Vector2 deformed_ideal = {
-          pos.x + point_dir.x * (static_cast<float>(node.radius) - diff * squish_factor),
-          pos.y + point_dir.y * (static_cast<float>(node.radius) - diff * squish_factor)
+          pos.x + point_dir.x * (node.radius - diff * squish_factor),
+          pos.y + point_dir.y * (node.radius - diff * squish_factor)
         };
 
         auto& jelly_point = jelly.points[i];

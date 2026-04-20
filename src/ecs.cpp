@@ -1,4 +1,5 @@
 #include "ecs.hpp"
+#include "config.hpp"
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -112,7 +113,6 @@ namespace CrocobyGraph {
 
     using clock = std::chrono::high_resolution_clock;
     auto last_time = clock::now();
-    const double target_dt = 1.0 / 60.0;
 
     add_systems_from_queue();
 
@@ -127,8 +127,8 @@ namespace CrocobyGraph {
 
       auto frame_end = clock::now();
       std::chrono::duration<double> work_time = frame_end - frame_start;
-      if (work_time.count() < target_dt) {
-        std::this_thread::sleep_for(std::chrono::duration<double>(target_dt - work_time.count()));
+      if (work_time.count() < TICKS_INTERVAL) {
+        std::this_thread::sleep_for(std::chrono::duration<double>(TICKS_INTERVAL - work_time.count()));
       }
     }
 

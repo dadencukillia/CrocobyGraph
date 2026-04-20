@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <iostream>
 
 namespace CrocobyGraph {
 

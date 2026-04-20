@@ -1,6 +1,7 @@
 #ifndef _CGRAPH_BATCH_HPP_
 #define _CGRAPH_BATCH_HPP_
 
+#include "config.hpp"
 #include "entities.hpp"
 #include "components.hpp"
 #include "entt/entity/entity.hpp"
@@ -18,8 +19,8 @@ namespace CrocobyGraph {
   using Entity = std::variant<BeingCreatedEntity, entt::entity>;
 
   struct NodeBundle {
-    Color color { 0xFFFFFFFF };
-    double radius { 20.0 };
+    Color color { DEFAULT_NODE_COLOR };
+    float radius { DEFAULT_NODE_RADIUS };
     PositionComponent position;
   };
 
@@ -28,7 +29,7 @@ namespace CrocobyGraph {
     Entity node_end { entt::entity { entt::null } };
     bool arrow_on_start { false };
     bool arrow_on_end { false };
-    Color color { 0xFFFFFFFF };
+    Color color { DEFAULT_EDGE_COLOR };
     EdgeCurveType curve_type { EdgeCurveType::Linear };
   };
 

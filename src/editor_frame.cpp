@@ -279,9 +279,7 @@ namespace CrocobyGraph {
         static_cast<uint8_t>(rgba[3] * 255.0f)
       };
 
-      float radius = static_cast<float>(node.radius);
-      ImGui::SliderFloat("Radius", &radius, 5.0f, 100.0f);
-      node.radius = radius;
+      ImGui::SliderFloat("Radius", &node.radius, 5.0f, 100.0f);
 
       auto self_loop = get_node_connection(registry, *selection.begin(), *selection.begin());
       if (self_loop.has_value()) {

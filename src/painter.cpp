@@ -20,7 +20,7 @@ namespace CrocobyGraph {
     UnloadFont(open_sans_font);
   }
 
-  void Painter::draw_jelly_node(const std::vector<PositionComponent>& points, Vector2 center_pos, Color color) const {
+  void Painter::draw_jelly_node(const std::vector<PositionComponent>& points, Vector2 center_pos, Color color) {
     Vector2 fan_points[jelly_points + 2] = {};
     fan_points[0] = { center_pos.x, center_pos.y };
     fan_points[jelly_points + 1] = { points[jelly_points - 1].x, points[jelly_points - 1].y };
@@ -31,13 +31,11 @@ namespace CrocobyGraph {
     DrawTriangleFan(fan_points, jelly_points + 2, color);
   }
 
-  void Painter::draw_node(Vector2 pos, Color color, double radius) const {
-    DrawCircleV(pos, static_cast<float>(radius), color);
+  void Painter::draw_node(Vector2 pos, Color color, float radius) {
+    DrawCircleV(pos, radius, color);
   }
 
-  void Painter::draw_edge(Vector2 from, Vector2 to, Color color, EdgeCurveType curve) const {
-    float thickness = 1.0f;
-
+  void Painter::draw_edge(Vector2 from, Vector2 to, Color color, EdgeCurveType curve, float thickness) {
     switch (curve) {
     case EdgeCurveType::Linear:
       DrawLineEx(from, to, thickness, color);
@@ -56,8 +54,7 @@ namespace CrocobyGraph {
     }
   }
 
-  void Painter::draw_self_loop(Vector2 pos, Color color, double radius) const {
-    float thickness = 1.0f;
+  void Painter::draw_self_loop(Vector2 pos, Color color, float radius, float thickness) {
     float angle = std::atan2(pos.y, pos.x);
     float width = 30.0f * PI / 180.0f;
     float length = radius * 4.0f;
@@ -76,9 +73,7 @@ namespace CrocobyGraph {
     DrawTextEx(open_sans_font, text.data(), { pos.x - dimension.x / 2.0f, pos.y - dimension.y / 2.0f }, font_size, spacing, color);
   }
 
-  void Painter::draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve) const {
-    float thickness = 1.0f;
-
+  void Painter::draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve, float thickness) {
     if (from.x == to.x && from.y == to.y) {
       uint32_t divisions = 64;
       float angle = std::atan2(from.y, from.x);

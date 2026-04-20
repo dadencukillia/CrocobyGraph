@@ -5,20 +5,6 @@
 
 namespace CrocobyGraph {
 
-  Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha) :
-    r(r),
-    g(g),
-    b(b),
-    a(alpha)
-  {}
-
-  Color::Color(uint32_t hex) :
-    r((hex >> 24) & 0xFF),
-    g((hex >> 16) & 0xFF),
-    b((hex >> 8) & 0xFF),
-    a(hex & 0xFF)
-  {}
-
   uint8_t Color::get_red() const { return r; }
   uint8_t Color::get_green() const { return g; }
   uint8_t Color::get_blue() const { return b; }

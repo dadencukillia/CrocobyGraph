@@ -18,8 +18,14 @@ namespace CrocobyGraph {
     uint8_t a { 255 };
 
   public:
-    Color(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255);
-    Color(uint32_t hex);
+    constexpr Color(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255) :
+      r(r), g(g), b(b), a(alpha) {}
+
+    constexpr Color(uint32_t hex) :
+      r((hex >> 24) & 0xFF),
+      g((hex >> 16) & 0xFF),
+      b((hex >> 8) & 0xFF),
+      a(hex & 0xFF) {}
 
     uint8_t get_red() const;
     uint8_t get_green() const;
