@@ -2,20 +2,30 @@ EXECUTABLE := DemoCrocobyGraph
 GENERATOR := Ninja
 .DEFAULT_GOAL := all
 .SILENT: run
+.PHONY: clear configure_debug build_debug debug release run
 
 export CC := /usr/bin/clang
 export CXX := /usr/bin/clang++
 
-all: configure compile run
+all: configure_debug build_debug run
 
 clear:
 	rm -rf ./build
 
-configure:
-	cmake -S. -B=build -G=${GENERATOR}
+configure_debug:
+	cmake -S. -B=build -G=${GENERATOR} -DCMAKE_BUILD_TYPE=Debug
 
-compile:
-	cmake --build build -j 8
+build_debug:
+	cmake --build build -j 8 --config Debug
+
+configure_release:
+	cmake -S. -B=build -G=${GENERATOR} -DCMAKE_BUILD_TYPE=Release
+
+build_release:
+	cmake --build build -j 8 --config Release
+
+debug: configure_debug build_debug
+release: configure_release build_release
 
 run:
 	echo
