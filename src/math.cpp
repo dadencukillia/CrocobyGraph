@@ -1,7 +1,10 @@
 #include "math.hpp"
 #include "raylib.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
+#include <queue>
 
 namespace CrocobyGraph {
 
@@ -85,6 +88,54 @@ namespace CrocobyGraph {
 
   bool check_rect_a_in_rect_b(Vector2 rect_a_top_left, Vector2 rect_a_bottom_right, Vector2 rect_b_top_left, Vector2 rect_b_bottom_right) {
     return rect_a_top_left.x <= rect_b_bottom_right.x && rect_a_bottom_right.x >= rect_b_top_left.x && rect_a_top_left.y <= rect_b_bottom_right.y && rect_a_bottom_right.y >= rect_b_top_left.y;
+  }
+
+  bool approximately_check_bezier_line_in_rect(std::function<Vector2(ApproximatelySplineCallbackParams)> spline_dot_function, Vector2 rect_top_left, Vector2 rect_bottom_right, float threshold) {
+    std::queue<ApproximatelySplineCallbackParams> parts;
+    parts.push({
+      .divisions = 1,
+      .index = 0
+    });
+
+    for (; !parts.empty(); parts.pop()) {
+      auto& front = parts.front();
+
+      auto a = spline_dot_function({
+        .divisions = front.divisions,
+        .index = front.index,
+      });
+
+      auto b = spline_dot_function({
+        .divisions = front.divisions,
+        .index = front.index + 1,
+      });
+
+      Vector2 top_left = {
+        std::min(a.x, b.x),
+        std::min(a.y, b.y),
+      };
+
+      Vector2 bottom_right = {
+        std::max(a.x, b.x),
+        std::max(a.y, b.y),
+      };
+
+      if (check_rect_a_in_rect_b(top_left, bottom_right, rect_top_left, rect_bottom_right)) {
+        if ((bottom_right.x - top_left.x) * (bottom_right.y - top_left.y) < threshold) return true;
+
+        parts.push({
+          .divisions = front.divisions * 2,
+          .index = front.index * 2
+        });
+
+        parts.push({
+          .divisions = front.divisions * 2,
+          .index = front.index * 2 + 1
+        });
+      }
+    }
+
+    return false;
   }
 
 }

@@ -18,7 +18,7 @@ namespace CrocobyGraph {
   inline constexpr float PHYSICS_REPULSION_CONSTANT { 1'000'000.f };
   inline constexpr float PHYSICS_GRAVITY_CONSTANT { .8f };
   inline constexpr float PHYSICS_ATTRACTION_IDEAL_DISTANCE { 200.f };
-  inline constexpr float PHYSICS_FRICTION_CONSTANT { 1.5f };
+  inline constexpr float PHYSICS_FRICTION_CONSTANT { 0.5f };
 
   // ECS
   inline constexpr float TARGET_TPS { 60.f };

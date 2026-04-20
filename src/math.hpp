@@ -13,6 +13,11 @@ namespace CrocobyGraph {
     float distance { 0.0f };
   };
 
+  struct ApproximatelySplineCallbackParams {
+    uint32_t divisions;
+    uint32_t index;
+  };
+
   float raylib_ease_cubic_in_out(float t, float b, float c, float d);
   Vector2 calculate_bezier_cubic_dot(Vector2 start, Vector2 end, Vector2 c1, Vector2 c2, float divisions, float index);
   Vector2 calculate_bezier_cubic_in_out_dot(Vector2 a, Vector2 b, float divisions, float index);
@@ -21,6 +26,7 @@ namespace CrocobyGraph {
   bool check_point_in_rect(Vector2 point, Vector2 rect_top_left, Vector2 rect_bottom_right);
   bool check_rect_collision_line(Vector2 line_start, Vector2 line_end, Vector2 rect_top_left, Vector2 rect_bottom_right);
   bool check_rect_a_in_rect_b(Vector2 rect_a_top_left, Vector2 rect_a_bottom_right, Vector2 rect_b_top_left, Vector2 rect_b_bottom_right);
+  bool approximately_check_bezier_line_in_rect(std::function<Vector2(ApproximatelySplineCallbackParams)> spline_dot_function, Vector2 rect_top_left, Vector2 rect_bottom_right, float threshold = 2.0f);
 
   inline Vector2 translate_world_to_screen_coordinates(Vector2 local_pos, Vector2 camera_pos, float camera_zoom, Vector2 window_size) {
     return { (local_pos.x - camera_pos.x) * camera_zoom + window_size.x / 2.0f, (local_pos.y - camera_pos.y) * camera_zoom + window_size.y / 2.0f };

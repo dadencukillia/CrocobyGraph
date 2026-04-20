@@ -418,9 +418,11 @@ namespace CrocobyGraph {
           }
         }
       } else if (current_edge) {
-        float threshold = 5.0f;
-        if (corner_bottom_right.x - corner_top_left.x > 5.0f || corner_bottom_right.y - corner_top_left.y > 5.0f) {
-          threshold = 0.0f;
+        auto corner_top_left_expanded = corner_top_left;
+        auto corner_bottom_right_expanded = corner_bottom_right;
+        if ((corner_bottom_right.x - corner_top_left.x) * (corner_bottom_right.y - corner_top_left.y) < 5.0f) {
+          corner_top_left_expanded = { corner_top_left_expanded.x - 5.0f, corner_top_left_expanded.y - 5.0f };
+          corner_bottom_right_expanded = { corner_bottom_right_expanded.x + 5.0f, corner_bottom_right_expanded.y + 5.0f };
         }
 
         for (auto [entity, edge] : registry.view<const EdgeEntity>().each()) {
@@ -428,11 +430,23 @@ namespace CrocobyGraph {
           auto pos_b = registry.get<const PositionComponent>(edge.node_end);
 
           if (!selection.contains(entity)) {
-            if (check_rect_collision_line(
-              { pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, 
-              { corner_top_left.x - threshold, corner_top_left.y - threshold }, 
-              { corner_bottom_right.x + threshold, corner_bottom_right.y + threshold }
-            )) {
+            bool in_selection { false };
+            switch(edge.curve_type) {
+            case EdgeCurveType::Linear:
+              in_selection = check_rect_collision_line(
+                { pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, 
+                corner_top_left_expanded, corner_bottom_right_expanded
+              );
+              break;
+
+            case EdgeCurveType::Ease:
+              in_selection = approximately_check_bezier_line_in_rect([pos_a, pos_b](ApproximatelySplineCallbackParams a) {
+                return calculate_bezier_cubic_in_out_dot({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, a.divisions, a.index);
+              }, corner_top_left_expanded, corner_bottom_right_expanded);
+              break;
+            }
+
+            if (in_selection) {
               temp_selection.insert(entity);
             }
           }
