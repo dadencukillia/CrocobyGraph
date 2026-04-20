@@ -1,13 +1,17 @@
 #include "editor_frame.hpp"
 #include "components.hpp"
+#include "config.hpp"
 #include "ecs.hpp"
 #include "entities.hpp"
 #include "entt/entity/fwd.hpp"
 #include "imgui.h"
 #include "math.hpp"
+#include "painter.hpp"
 #include "physics_system.hpp"
 #include "raylib.h"
 #include "resources/editor_icons.hpp"
+#include "window.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <optional>
@@ -447,6 +451,10 @@ namespace CrocobyGraph {
       return;
     }
 
+    BeginMode2D(get_camera_2d(info));
+
+    Color selection_color = { 0, 0, 180, 100 };
+
     for (auto* selection_list : { &selection, &temp_selection }) {
       for (auto& selected : *selection_list) {
         if (!registry.valid(selected)) continue;
@@ -455,22 +463,40 @@ namespace CrocobyGraph {
           auto [node, pos] = registry.get<const NodeEntity, const PositionComponent>(selected);
 
           DrawCircleV(
-            translate_world_to_screen_coordinates({ pos.x, pos.y }, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) }), 
-            node.radius * info.camera_zoom, { 0, 0, 180, 100 }
+            { pos.x, pos.y }, 
+            node.radius,
+            selection_color
           );
         } else if (current_edge) {
           auto edge = registry.get<const EdgeEntity>(selected);
           auto pos_a = registry.get<const PositionComponent>(edge.node_start);
-          auto pos_b = registry.get<const PositionComponent>(edge.node_end);
+          float thickness = EDGES_THICKNESS * 2.0f;
 
-          DrawLineEx(
-            translate_world_to_screen_coordinates({ pos_a.x, pos_a.y }, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) }), 
-            translate_world_to_screen_coordinates({ pos_b.x, pos_b.y }, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) }), 
-            info.camera_zoom * 2.0f, { 0, 0, 180, 100 }
-          );
+          if (edge.node_start == edge.node_end) {
+            auto node = registry.get<const NodeEntity>(edge.node_start);
+
+            Painter::draw_self_loop(
+              { pos_a.x, pos_a.y },
+              selection_color,
+              node.radius,
+              thickness
+            );
+          } else {
+            auto pos_b = registry.get<const PositionComponent>(edge.node_end);
+
+            Painter::draw_edge(
+              { pos_a.x, pos_a.y },
+              { pos_b.x, pos_b.y },
+              selection_color,
+              edge.curve_type,
+              thickness
+            );
+          }
         }
       }
     }
+
+    EndMode2D();
   }
 
   inline void EditorFrame::process_motion(const WindowInfo& info, GraphECS& ecs, bool current_node, bool current_edge, bool current_label) {

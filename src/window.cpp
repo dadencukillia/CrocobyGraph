@@ -31,6 +31,15 @@ namespace CrocobyGraph {
     return entity;
   }
 
+  Camera2D get_camera_2d(const WindowInfo& info) {
+    return {
+      .offset = { static_cast<float>(info.width) / 2, static_cast<float>(info.height) / 2 },
+      .target = { info.camera_x, info.camera_y },
+      .rotation = 0.f,
+      .zoom = info.camera_zoom,
+    };
+  }
+
   Window::~Window() {
     auto& registry = scene->get_registry();
 
@@ -229,16 +238,10 @@ namespace CrocobyGraph {
   }
 
   void Window::draw() {
-    Camera2D rl_camera = { 0 };
-    rl_camera.target = { window_states.camera_x, window_states.camera_y };
-    rl_camera.offset = { static_cast<float>(window_states.width) / 2, static_cast<float>(window_states.height) / 2 };
-    rl_camera.zoom = window_states.camera_zoom;
-    rl_camera.rotation = 0.0f;
-
     BeginDrawing();
     ClearBackground(::Color(37, 36, 45));
 
-    BeginMode2D(rl_camera);
+    BeginMode2D(get_camera_2d(window_states));
       draw_background();
       draw_components();
     EndMode2D();

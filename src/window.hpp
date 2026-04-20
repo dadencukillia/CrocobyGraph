@@ -4,9 +4,12 @@
 #include "ecs.hpp"
 #include "painter.hpp"
 #include "scene.hpp"
+#include "raylib.h"
 #include "window_system.hpp"
 
 namespace CrocobyGraph {
+
+  Camera2D get_camera_2d(const WindowInfo& info);
 
   class Window {
     Painter painter {};
