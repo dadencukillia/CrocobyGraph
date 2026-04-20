@@ -444,6 +444,14 @@ namespace CrocobyGraph {
                 return calculate_bezier_cubic_in_out_dot({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, a.divisions, a.index);
               }, corner_top_left_expanded, corner_bottom_right_expanded);
               break;
+
+            case EdgeCurveType::Step:
+              float mid_x = pos_a.x + (pos_b.x - pos_a.x) / 2.0f;
+              in_selection = (
+                 check_rect_collision_line({ pos_a.x, pos_a.y }, { mid_x, pos_a.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
+                 check_rect_collision_line({ mid_x, pos_a.y }, { mid_x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
+                 check_rect_collision_line({ mid_x, pos_b.y }, { pos_b.x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded)
+              );
             }
 
             if (in_selection) {
