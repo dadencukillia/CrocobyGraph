@@ -452,6 +452,8 @@ namespace CrocobyGraph {
                  check_rect_collision_line({ mid_x, pos_a.y }, { mid_x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
                  check_rect_collision_line({ mid_x, pos_b.y }, { pos_b.x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded)
               );
+
+              break;
             }
 
             if (in_selection) {
