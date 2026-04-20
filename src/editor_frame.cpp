@@ -135,6 +135,15 @@ namespace CrocobyGraph {
         }
       }
 
+      ImGui::SameLine();
+      if (ImGui::Button("Both <>##add_both")) {
+        for (auto& entity : selection) {
+          auto& edge = registry.get<EdgeEntity>(entity);
+          edge.arrow_on_start = true;
+          edge.arrow_on_end = true;
+        }
+      }
+
       if (ImGui::Button("< Remove arrow")) {
         for (auto& entity : selection) {
           auto& edge = registry.get<EdgeEntity>(entity);
@@ -146,6 +155,15 @@ namespace CrocobyGraph {
       if (ImGui::Button("Remove arrow >")) {
         for (auto& entity : selection) {
           auto& edge = registry.get<EdgeEntity>(entity);
+          edge.arrow_on_end = false;
+        }
+      }
+
+      ImGui::SameLine();
+      if (ImGui::Button("Both <>##remove_both")) {
+        for (auto& entity : selection) {
+          auto& edge = registry.get<EdgeEntity>(entity);
+          edge.arrow_on_start = false;
           edge.arrow_on_end = false;
         }
       }
@@ -177,6 +195,14 @@ namespace CrocobyGraph {
 
         selection.clear();
         ecs.get_scene().append(std::move(batch));
+      }
+
+      ImGui::SameLine();
+      if (ImGui::Button("Reverse")) {
+        for (auto& entity : selection) {
+          auto& edge = registry.get<EdgeEntity>(entity);
+          std::swap(edge.node_start, edge.node_end);
+        }
       }
     }
 

@@ -14,6 +14,7 @@ int main() {
       .points_to = { "finish" },
       .id = "start",
     },
+    {}, {},{}, {},{}, {},{}, {},{}, {},{}, {},{}, {},{}, {},{}, {},{}, {},
     {
       .label = "Finish",
       .color = { 0x00FF00FF },
@@ -44,7 +45,7 @@ int main() {
   }) };
 
   cg::GraphECS ecs {};
-  ecs.get_scene().append(std::move(neural_network));
+  ecs.get_scene().append(std::move(decomposed));
   ecs.add_system(cg::get_window_system<cg::PhysicsFrame, cg::EditorFrame>());
   ecs.run_loop();
 
