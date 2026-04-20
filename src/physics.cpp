@@ -7,6 +7,7 @@
 #include "raylib.h"
 #include <cmath>
 #include <cstddef>
+#include <iostream>
 #include <vector>
 
 namespace CrocobyGraph {
@@ -38,8 +39,11 @@ namespace CrocobyGraph {
     if (with_jelly) update_jelly(delta);
     auto& registry = scene->get_registry();
 
-    for (auto [entity, node] : registry.view<NodeEntity>(entt::exclude<VelocityComponent, RepulsionComponent>).each()) {
+    for (auto [entity, node] : registry.view<const NodeEntity>(entt::exclude<VelocityComponent>).each()) {
       registry.emplace<VelocityComponent>(entity, 0.0f, 0.0f);
+    }
+
+    for (auto [entity, node] : registry.view<const NodeEntity>(entt::exclude<RepulsionComponent>).each()) {
       registry.emplace<RepulsionComponent>(entity, 1.0f);
     }
 
@@ -90,7 +94,7 @@ namespace CrocobyGraph {
 
       // Gravity force
       float g = 1.0f;
-      float center_distance = std::sqrt(pos.x * pos.x + pos.y * pos.y);
+      float center_distance = std::sqrt(pos.x * pos.x + pos.y * pos.y) + 0.1f;
       Vector2 gravity_direction = { -pos.x / center_distance, -pos.y / center_distance };
       forces.x += gravity_direction.x * g * mass;
       forces.y += gravity_direction.y * g * mass;
