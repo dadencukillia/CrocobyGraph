@@ -119,17 +119,19 @@ namespace CrocobyGraph {
 
       if (a.x == b.x && a.y == b.y) {
         auto radius = nodes[edge.node_start].radius;
-        float distance = std::sqrt(a.x * a.x + a.y * a.y);
-        Vector2 normalized = { a.x / distance, a.y / distance };
         float length = radius * 4.0f;
-        Vector2 corner = { a.x + normalized.x * length, a.y + normalized.y * length };
+        float angle = std::atan2(a.y, a.x);
+        float width = 30.0f * PI / 180.0f;
+        Vector2 corner = { a.x + std::cos(angle) * length, a.y + std::sin(angle) * length };
+        Vector2 p1 = { a.x + std::cos(angle - width) * length, a.y + std::sin(angle - width) * length };
+        Vector2 p2 = { a.x + std::cos(angle + width) * length, a.y + std::sin(angle + width) * length };
 
         positions.insert({ entity, { corner.x * 2 / 3, corner.y * 2 / 3 } });
 
-        float border_left = std::min(a.x, corner.x);
-        float border_right = std::max(a.x, corner.x);
-        float border_top = std::min(a.y, corner.y);
-        float border_bottom = std::max(a.y, corner.y);
+        float border_left = std::min(std::min(a.x, corner.x), std::min(p1.x, p2.x));
+        float border_right = std::max(std::max(a.x, corner.x), std::max(p1.x, p2.x));
+        float border_top = std::min(std::min(a.y, corner.y), std::min(p1.y, p2.y));
+        float border_bottom = std::max(std::max(a.y, corner.y), std::max(p1.y, p2.y));
 
         if (!check_rect_a_in_rect_b({ border_left, border_top }, { border_right, border_bottom }, camera_top_left, camera_bottom_right)) continue;
 
