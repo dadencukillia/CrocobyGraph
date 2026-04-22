@@ -1,7 +1,9 @@
 # CrocobyGraph
-Under development. Sorry, no time for `README.md`
+
+An interactive graph visualization library for C++ with real-time rendering and ECS-based architecture.
 
 ## 📁 Code file structure
+
 ```tree
 .
 ├── 📁 bin
@@ -9,7 +11,7 @@ Under development. Sorry, no time for `README.md`
 ├── 📄 CMakeLists.txt
 ├── 📁 external
 ├── 📁 include
-│   └── 📁 crocobygraph
+│   └── 📁 crocobygraph
 ├── 📄 Makefile
 └── 📁 src
     ├── 📄 config.hpp
@@ -19,27 +21,29 @@ Under development. Sorry, no time for `README.md`
 ```
 
 ### Description
-- **bin** - a directory with a library usage demo
-- **cmake** - a directory with external libraries connection instructions for CMake
+
+- **bin** - a directory with library usage examples
+- **cmake** - a directory with external library connection instructions for CMake
 - **CMakeLists.txt** - instructions on how to build the library
-- **external** - a directory with libraries source code as Git submodules
+- **external** - a directory with library source code as Git submodules
 - **include** - a directory with umbrella headers (accessible to users)
 - **Makefile** - a file with shortcut commands for easy development and CI/CD
 - **src** - a directory with the library source code
 - **src/config.hpp** - a file with library constants
-- **src/interface** - a directory with code
-- **src/internal** - a directory with code
-- **src/resources** - a directory with resources (fonts, images, sounds etc) and C++ files with `#embed` preprocessor
+- **src/interface** - a directory with public interface code
+- **src/internal** - a directory with internal implementation code
+- **src/resources** - a directory with resources (fonts, images, sounds, etc.) and C++ files with `#embed` preprocessor directives
 
 ### src/interface vs src/internal
-The division of source code into two directories was made to keep encapsulation easily.
-The main purpose is to not crowd the main namespace by including **CrocobyGraph headers** with external libraries variables, functions, types etc.
-The users must include the libraries by themselves if they want. To put it simply:
-- **interface** - a directory with Header files (and their CPP) to be accessible for use
-- **internal** - a directory with code that contains logic and interaction with the external libraries
+
+The division of source code into two directories maintains encapsulation clearly. The main purpose is to avoid cluttering the main namespace by including **CrocobyGraph headers** with external library variables, functions, types, and so on. Users must include the external libraries themselves if they need them. To summarize:
+
+- **interface** - a directory with header files (and their corresponding .cpp files) meant to be accessible for public use
+- **internal** - a directory with code that contains logic and interaction with external libraries
 
 **Rules:**
-- **src/interface/*.hpp** can't include any file from external libraries or from internal directory
+
+- **src/interface/*.hpp** cannot include any files from external libraries or the internal directory
 - **src/interface/*.cpp** can freely include any file
 - **src/internal/*.hpp** can freely include any file
 - **src/internal/*.cpp** can freely include any file
@@ -53,7 +57,8 @@ The users must include the libraries by themselves if they want. To put it simpl
 | src/interface/*.hpp | ✅ Yes    | ❌ No    | ❌ No    |
 | src/interface/*.cpp | ✅ Yes    | ✅ Yes   | ✅ Yes   |
 | src/internal/*.hpp  | ✅ Yes    | ✅ Yes   | ✅ Yes   |
-| src/internal/*.cpp  | ✅ Yes    | ✅ Yes   | ✅ Yes   |
+| src/internal/*.cpp  | ✅ Yes    | ✅ Yes   | ✅ Yes   |  
 
-**What I can do if the interface class wants to use the external type as a field?**
-- There's a lot ways to avoid including. My favourite is to use the the **Forward Declarations** and **Opaque Pointers**.
+**What can I do if an interface class needs to use an external type as a field?**
+
+There are many ways to avoid including external headers. My favorite approach is to use **Forward Declarations** and **Opaque Pointers**.
