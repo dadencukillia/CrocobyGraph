@@ -1,5 +1,5 @@
 #include "physics_system.hpp"
-#include "physics.hpp"
+#include "../internal/physics.hpp"
 #include <cassert>
 #include <string_view>
 

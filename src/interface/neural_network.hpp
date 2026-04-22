@@ -2,7 +2,6 @@
 #define _CGRAPH_NEURAL_NETWORK_HPP_
 
 #include "batch.hpp"
-#include "config.hpp"
 #include "entities.hpp"
 #include <cassert>
 #include <string>

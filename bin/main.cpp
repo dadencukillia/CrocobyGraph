@@ -3,10 +3,9 @@
 #include "crocobygraph/visual.hpp"
 
 namespace cg = CrocobyGraph;
-using namespace cg::aliases;
 
 int main() {
-  std::vector<LGN> graphOne = {
+  std::vector<cg::LayoutGraphNode> graphOne = {
     {
       .label = "Start",
       .color = cg::ColorPresets::RED,
@@ -29,18 +28,20 @@ int main() {
     { false, false, true }
   };
 
-  std::vector<LGN> graphTwo = cg::layout_from_adjacency_matrix<3>(
+  std::vector<cg::LayoutGraphNode> graphTwo = cg::layout_from_adjacency_matrix<3>(
     std::move(nodes),
     connections
   );
 
   cg::Batch decomposed { cg::decompose(std::move(graphOne)) };
   cg::Batch neural_network { cg::neural_network({
+    "Ticket class",
+    "Gender",
     "Age",
-    "Room",
-    "Gender"
-  }, { 10, 5, 5, 5, 5, 5, 5, 5 }, {
-    "Chance"
+    "Parch",
+    "Fare"
+  }, { 32, 16 }, {
+    "Survivance chance"
   }) };
 
   cg::GraphECS ecs {};

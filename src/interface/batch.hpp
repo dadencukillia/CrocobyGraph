@@ -1,10 +1,9 @@
 #ifndef _CGRAPH_BATCH_HPP_
 #define _CGRAPH_BATCH_HPP_
 
-#include "config.hpp"
+#include "../config.hpp"
 #include "entities.hpp"
 #include "components.hpp"
-#include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
 #include <cstddef>
 #include <variant>

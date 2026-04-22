@@ -17,19 +17,21 @@ find_package(entt REQUIRED)
 add_library(CrocobyGraph
   ./src/resources/editor_icons.cpp
   ./src/resources/open_sans.cpp
-  ./src/batch.cpp
-  ./src/color.cpp
-  ./src/decompose.cpp
-  ./src/ecs.cpp
-  ./src/editor_frame.cpp
-  ./src/math.cpp
-  ./src/painter.cpp
-  ./src/physics.cpp
-  ./src/physics_frame.cpp
-  ./src/physics_system.cpp
-  ./src/scene.cpp
-  ./src/window.cpp
-  ./src/window_system.cpp
+
+  ./src/interface/batch.cpp
+  ./src/interface/color.cpp
+  ./src/interface/decompose.cpp
+  ./src/interface/ecs.cpp
+  ./src/interface/editor_frame.cpp
+  ./src/interface/physics_frame.cpp
+  ./src/interface/physics_system.cpp
+  ./src/interface/scene.cpp
+  ./src/interface/window_system.cpp
+
+  ./src/internal/window.cpp
+  ./src/internal/math.cpp
+  ./src/internal/painter.cpp
+  ./src/internal/physics.cpp
 )
 
 target_include_directories(CrocobyGraph PUBLIC ./include)

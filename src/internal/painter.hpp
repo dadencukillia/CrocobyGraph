@@ -1,10 +1,10 @@
 #ifndef _CGRAPH_PAINTER_HPP_
 #define _CGRAPH_PAINTER_HPP_
 
-#include "color.hpp"
-#include "components.hpp"
-#include "config.hpp"
-#include "entities.hpp"
+#include "../interface/color.hpp"
+#include "../interface/components.hpp"
+#include "../interface/entities.hpp"
+#include "../config.hpp"
 #include <string_view>
 #include <vector>
 #include "raylib.h"

@@ -1,5 +1,5 @@
 #include "ecs.hpp"
-#include "config.hpp"
+#include "../config.hpp"
 #include <algorithm>
 #include <cassert>
 #include <chrono>

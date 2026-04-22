@@ -14,10 +14,6 @@ namespace CrocobyGraph {
     std::string id { "" };
   };
 
-  namespace aliases {
-    using LGN = LayoutGraphNode;
-  }
-
   template <unsigned int N>
   inline std::vector<LayoutGraphNode> layout_from_adjacency_matrix(
     const std::string (&&nodes)[N],

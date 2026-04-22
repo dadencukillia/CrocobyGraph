@@ -1,7 +1,7 @@
 #include "window_system.hpp"
+#include "../internal/window.hpp"
 #include "ecs.hpp"
 #include "raylib.h"
-#include "window.hpp"
 #include <cassert>
 #include <memory>
 

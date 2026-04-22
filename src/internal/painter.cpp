@@ -1,13 +1,13 @@
 #include "painter.hpp"
-#include "color.hpp"
-#include "entities.hpp"
+#include "../interface/color.hpp"
+#include "../interface/entities.hpp"
+#include "../resources/open_sans.hpp"
 #include "math.hpp"
 #include "physics.hpp"
 #include "raylib.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include "resources/open_sans.hpp"
 
 namespace CrocobyGraph {
 

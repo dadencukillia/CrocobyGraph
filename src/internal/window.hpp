@@ -1,11 +1,11 @@
 #ifndef _CGRAPH_WINDOW_HPP_
 #define _CGRAPH_WINDOW_HPP_
 
-#include "ecs.hpp"
+#include "../interface/ecs.hpp"
+#include "../interface/scene.hpp"
+#include "../interface/window_system.hpp"
 #include "painter.hpp"
-#include "scene.hpp"
 #include "raylib.h"
-#include "window_system.hpp"
 
 namespace CrocobyGraph {
 

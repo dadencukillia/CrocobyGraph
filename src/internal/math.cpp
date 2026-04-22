@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <iostream>
 #include <queue>
 
 namespace CrocobyGraph {

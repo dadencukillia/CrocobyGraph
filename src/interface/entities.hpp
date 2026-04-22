@@ -2,7 +2,7 @@
 #define _CGRAPH_ENTITIES_HPP_
 
 #include "color.hpp"
-#include "config.hpp"
+#include "../config.hpp"
 #include "entt/entt.hpp"
 #include <string>
 

@@ -1,7 +1,7 @@
 #ifndef _CGRAPH_CONFIG_HPP_
 #define _CGRAPH_CONFIG_HPP_
 
-#include "color.hpp"
+#include "interface/color.hpp"
 
 namespace CrocobyGraph {
 

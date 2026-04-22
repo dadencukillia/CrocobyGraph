@@ -1,9 +1,9 @@
 #ifndef _CGRAPH_PHYSICS_HPP_
 #define _CGRAPH_PHYSICS_HPP_
 
-#include "components.hpp"
-#include "ecs.hpp"
-#include "scene.hpp"
+#include "../interface/components.hpp"
+#include "../interface/ecs.hpp"
+#include "../interface/scene.hpp"
 #include <cstddef>
 
 namespace CrocobyGraph {
