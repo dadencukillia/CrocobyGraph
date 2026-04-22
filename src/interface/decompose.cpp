@@ -1,7 +1,8 @@
 #include "decompose.hpp"
-#include "entities.hpp"
+#include <cmath>
 #include <cstddef>
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace CrocobyGraph {

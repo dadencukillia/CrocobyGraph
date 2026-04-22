@@ -1,14 +1,14 @@
 #include "editor_frame.hpp"
 #include "../internal/painter.hpp"
 #include "../internal/window.hpp"
+#include "../internal/math.hpp"
 #include "../resources/editor_icons.hpp"
 #include "../config.hpp"
 #include "components.hpp"
 #include "ecs.hpp"
 #include "entities.hpp"
-#include "entt/entity/fwd.hpp"
+#include "entt/entt.hpp"
 #include "imgui.h"
-#include "../internal/math.hpp"
 #include "physics_system.hpp"
 #include "raylib.h"
 #include <algorithm>
@@ -54,7 +54,7 @@ namespace CrocobyGraph {
   }
 
   inline std::optional<entt::entity> get_node_connection(const entt::registry& registry, const entt::entity& node_a, const entt::entity& node_b) {
-    for (auto [entity, edge] : registry.view<EdgeEntity>()->each()) {
+    for (auto [entity, edge] : registry.view<EdgeEntity>().each()) {
       if ((edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a)) {
         return entity;
       }

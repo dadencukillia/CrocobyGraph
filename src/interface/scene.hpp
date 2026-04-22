@@ -2,15 +2,16 @@
 #define _CGRAPH_SCENE_HPP_
 
 #include "batch.hpp"
-#include "entt/entt.hpp"
+#include "entt/entity/fwd.hpp"
 
 namespace CrocobyGraph {
 
   class Scene {
-    entt::registry registry;
+    entt::registry* registry;
 
   public:
     Scene();
+    ~Scene();
     Scene(const Scene&) = delete;
     Scene& operator=(const Scene&) = delete;
     Scene(Scene&&) = delete;

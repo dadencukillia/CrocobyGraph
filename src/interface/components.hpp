@@ -1,7 +1,6 @@
 #ifndef _CGRAPH_COMPONENTS_HPP_
 #define _CGRAPH_COMPONENTS_HPP_
 
-#include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
 
 namespace CrocobyGraph {
@@ -12,7 +11,7 @@ namespace CrocobyGraph {
   };
 
   struct AttachComponent {
-    entt::entity target { entt::null };
+    entt::entity target { 0xFFFFFFFF };
     float offset_x { 0.0f };
     float offset_y { 0.0f };
   };

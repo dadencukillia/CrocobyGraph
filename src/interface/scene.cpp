@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "entities.hpp"
 #include "entt/entity/fwd.hpp"
+#include "entt/entt.hpp"
 #include <cstddef>
 #include <variant>
 
@@ -33,8 +34,13 @@ namespace CrocobyGraph {
   }
 
   Scene::Scene() {
-    registry.on_destroy<NodeEntity>().connect<&on_destroy_node>();
-    registry.on_destroy<EdgeEntity>().connect<&on_destroy_edge>();
+    registry = new entt::registry();
+    registry->on_destroy<NodeEntity>().connect<&on_destroy_node>();
+    registry->on_destroy<EdgeEntity>().connect<&on_destroy_edge>();
+  }
+
+  Scene::~Scene() {
+    delete registry;
   }
 
   void Scene::append(Batch&& batch, float offset_x, float offset_y) {
@@ -46,9 +52,9 @@ namespace CrocobyGraph {
     for (size_t index = 0; index < batch.nodes_to_create.size(); ++index) {
       auto& node = batch.nodes_to_create[index];
 
-      auto entity = registry.create();
-      registry.emplace<NodeEntity>(entity, node.color, node.radius);
-      registry.emplace<PositionComponent>(entity, node.position.x + offset_x, node.position.y + offset_y);
+      auto entity = registry->create();
+      registry->emplace<NodeEntity>(entity, node.color, node.radius);
+      registry->emplace<PositionComponent>(entity, node.position.x + offset_x, node.position.y + offset_y);
 
       node_ids[index] = entity;
     }
@@ -78,8 +84,8 @@ namespace CrocobyGraph {
         node_end = std::get<entt::entity>(edge.node_end);
       }
 
-      auto entity = registry.create();
-      registry.emplace<EdgeEntity>(entity, node_start, node_end, edge.arrow_on_start, edge.arrow_on_end, edge.color, edge.curve_type);
+      auto entity = registry->create();
+      registry->emplace<EdgeEntity>(entity, node_start, node_end, edge.arrow_on_start, edge.arrow_on_end, edge.color, edge.curve_type);
 
       edge_ids[index] = entity;
     }
@@ -87,9 +93,9 @@ namespace CrocobyGraph {
     for (size_t index = 0; index < batch.free_labels_to_create.size(); ++index) {
       auto& label = batch.free_labels_to_create[index];
 
-      auto entity = registry.create();
-      registry.emplace<LabelEntity>(entity, label.first.label, label.first.color);
-      registry.emplace<PositionComponent>(entity, label.second.x + offset_x, label.second.y + offset_y);
+      auto entity = registry->create();
+      registry->emplace<LabelEntity>(entity, label.first.label, label.first.color);
+      registry->emplace<PositionComponent>(entity, label.second.x + offset_x, label.second.y + offset_y);
 
       free_label_ids[index] = entity;
     }
@@ -112,20 +118,20 @@ namespace CrocobyGraph {
         attach_target = std::get<entt::entity>(label.second);
       }
 
-      auto entity = registry.create();
-      registry.emplace<LabelEntity>(entity, label.first.label, label.first.color);
-      registry.emplace<AttachComponent>(entity, attach_target, 0.0f, 0.0f);
+      auto entity = registry->create();
+      registry->emplace<LabelEntity>(entity, label.first.label, label.first.color);
+      registry->emplace<AttachComponent>(entity, attach_target, 0.0f, 0.0f);
 
       attach_label_ids[index] = entity;
     }
   }
 
   entt::registry& Scene::get_registry() {
-    return registry;
+    return *registry;
   }
 
   void Scene::clear() {
-    this->registry.clear();
+    registry->clear();
   }
 
 }

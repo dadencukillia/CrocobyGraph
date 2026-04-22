@@ -39,5 +39,5 @@ target_link_libraries(CrocobyGraph PUBLIC rlImGui entt)
 
 # Demo executable
 
-add_executable(DemoCrocobyGraph WIN32 ./bin/main.cpp)
+add_executable(DemoCrocobyGraph ./bin/main.cpp)
 target_link_libraries(DemoCrocobyGraph PRIVATE CrocobyGraph)

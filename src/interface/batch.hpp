@@ -24,8 +24,8 @@ namespace CrocobyGraph {
   };
 
   struct EdgeBundle {
-    Entity node_start { entt::entity { entt::null } };
-    Entity node_end { entt::entity { entt::null } };
+    Entity node_start { entt::entity { 0xFFFFFFFF } };
+    Entity node_end { entt::entity { 0xFFFFFFFF } };
     bool arrow_on_start { false };
     bool arrow_on_end { false };
     Color color { DEFAULT_EDGE_COLOR };

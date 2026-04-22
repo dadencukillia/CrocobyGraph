@@ -3,6 +3,7 @@
 #include "ecs.hpp"
 #include "physics_system.hpp"
 #include "window_system.hpp"
+#include "entt/entt.hpp"
 
 namespace CrocobyGraph {
 
@@ -39,7 +40,7 @@ namespace CrocobyGraph {
   void PhysicsFrame::apply_mouse_repulsion(const WindowInfo& info, GraphECS& ecs) {
     auto& registry = ecs.get_scene().get_registry();
 
-    for (auto [entity, cursor] : registry.view<CursorEntity>()->each()) {
+    for (auto [entity, cursor] : registry.view<CursorEntity>().each()) {
       registry.emplace_or_replace<RepulsionComponent>(entity, mouse_repulsion);
     }
   }

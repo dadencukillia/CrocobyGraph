@@ -3,7 +3,7 @@
 
 #include "color.hpp"
 #include "../config.hpp"
-#include "entt/entt.hpp"
+#include "entt/entity/fwd.hpp"
 #include <string>
 
 namespace CrocobyGraph {
@@ -20,8 +20,8 @@ namespace CrocobyGraph {
   };
 
   struct EdgeEntity {
-    entt::entity node_start { entt::null };
-    entt::entity node_end { entt::null };
+    entt::entity node_start { 0xFFFFFFFF };
+    entt::entity node_end { 0xFFFFFFFF };
     bool arrow_on_start { false };
     bool arrow_on_end { false };
     Color color { DEFAULT_EDGE_COLOR };
