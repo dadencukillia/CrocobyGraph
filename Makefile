@@ -19,7 +19,7 @@ build_debug:
 	cmake --build build -j 8 --config Debug
 
 configure_release:
-	cmake -S. -B=build -G=${GENERATOR} -DCMAKE_BUILD_TYPE=Release
+	cmake -S. -B=build -G=${GENERATOR} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=TRUE
 
 build_release:
 	cmake --build build -j 8 --config Release

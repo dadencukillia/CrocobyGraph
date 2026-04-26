@@ -2,6 +2,7 @@
 #include "../internal/painter.hpp"
 #include "../internal/window.hpp"
 #include "../internal/math.hpp"
+#include "../internal/resource_counter.hpp"
 #include "../resources/editor_icons.hpp"
 #include "../config.hpp"
 #include "components.hpp"
@@ -14,6 +15,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <iostream>
 #include <optional>
 #include <string_view>
 
@@ -24,34 +26,45 @@ namespace CrocobyGraph {
     Texture2D node_icon;
     Texture2D edge_icon;
     Texture2D label_icon;
+
+    IconTextures() {
+      auto eye_image = LoadImageFromMemory(".png", EditorIconEyeData, EditorIconEyeSize);
+      auto node_image = LoadImageFromMemory(".png", EditorIconNodeData, EditorIconNodeSize);
+      auto edge_image = LoadImageFromMemory(".png", EditorIconEdgeData, EditorIconEdgeSize);
+      auto label_image = LoadImageFromMemory(".png", EditorIconLabelData, EditorIconLabelSize);
+
+      view_icon = LoadTextureFromImage(eye_image);
+      node_icon = LoadTextureFromImage(node_image);
+      edge_icon = LoadTextureFromImage(edge_image);
+      label_icon = LoadTextureFromImage(label_image);
+
+      UnloadImage(eye_image);
+      UnloadImage(node_image);
+      UnloadImage(edge_image);
+      UnloadImage(label_image);
+
+      std::cout << "Editor frame icons loaded\n";
+    }
+
+    ~IconTextures() {
+      UnloadTexture(view_icon);
+      UnloadTexture(node_icon);
+      UnloadTexture(edge_icon);
+      UnloadTexture(label_icon);
+
+      std::cout << "Editor frame icons unloaded\n";
+    }
   };
-  
+
+  EditorFrame::EditorFrame() {
+    ResourceCounter<IconTextures>::inc();
+  }
+
   EditorFrame::~EditorFrame() {
-    UnloadTexture(textures->view_icon);
-    UnloadTexture(textures->node_icon);
-    UnloadTexture(textures->edge_icon);
-    UnloadTexture(textures->label_icon);
-    delete textures;
+    ResourceCounter<IconTextures>::dec();
   }
-
-  void EditorFrame::load(GraphECS& ecs) {
-    textures = new IconTextures();
-
-    auto eye_image = LoadImageFromMemory(".png", EditorIconEyeData, EditorIconEyeSize);
-    auto node_image = LoadImageFromMemory(".png", EditorIconNodeData, EditorIconNodeSize);
-    auto edge_image = LoadImageFromMemory(".png", EditorIconEdgeData, EditorIconEdgeSize);
-    auto label_image = LoadImageFromMemory(".png", EditorIconLabelData, EditorIconLabelSize);
-
-    textures->view_icon = LoadTextureFromImage(eye_image);
-    textures->node_icon = LoadTextureFromImage(node_image);
-    textures->edge_icon = LoadTextureFromImage(edge_image);
-    textures->label_icon = LoadTextureFromImage(label_image);
-
-    UnloadImage(eye_image);
-    UnloadImage(node_image);
-    UnloadImage(edge_image);
-    UnloadImage(label_image);
-  }
+  
+  void EditorFrame::load(GraphECS& ecs) {}
 
   inline std::optional<entt::entity> get_node_connection(const entt::registry& registry, const entt::entity& node_a, const entt::entity& node_b) {
     for (auto [entity, edge] : registry.view<EdgeEntity>().each()) {
@@ -72,8 +85,6 @@ namespace CrocobyGraph {
   }
 
   void EditorFrame::draw(const WindowInfo& info, GraphECS& ecs) {
-    assert(textures != nullptr);
-
     auto& registry = ecs.get_scene().get_registry();
 
     auto current_view = editor_mode == EditMode::View;
@@ -339,13 +350,16 @@ namespace CrocobyGraph {
   }
 
   inline void EditorFrame::draw_mode_toolbar(bool& toggle_view, bool& toggle_node, bool& toggle_edge, bool& toggle_label, bool current_view, bool current_node, bool current_edge, bool current_label) {
-    toggle_view = draw_toggle_icon_button("editor_view_icon", static_cast<ImTextureID>(textures->view_icon.id), ImVec2(24.0f, 24.0f), current_view) && !current_view;
+    ResourceCounter<IconTextures> icons_resource {};
+    const auto& resource = icons_resource.get();
+
+    toggle_view = draw_toggle_icon_button("editor_view_icon", static_cast<ImTextureID>(resource.view_icon.id), ImVec2(24.0f, 24.0f), current_view) && !current_view;
     ImGui::SameLine();
-    toggle_node = draw_toggle_icon_button("editor_node_icon", static_cast<ImTextureID>(textures->node_icon.id), ImVec2(24.0f, 24.0f), current_node) && !current_node;
+    toggle_node = draw_toggle_icon_button("editor_node_icon", static_cast<ImTextureID>(resource.node_icon.id), ImVec2(24.0f, 24.0f), current_node) && !current_node;
     ImGui::SameLine();
-    toggle_edge = draw_toggle_icon_button("editor_edge_icon", static_cast<ImTextureID>(textures->edge_icon.id), ImVec2(24.0f, 24.0f), current_edge) && !current_edge;
+    toggle_edge = draw_toggle_icon_button("editor_edge_icon", static_cast<ImTextureID>(resource.edge_icon.id), ImVec2(24.0f, 24.0f), current_edge) && !current_edge;
     ImGui::SameLine();
-    toggle_label = draw_toggle_icon_button("editor_label_icon", static_cast<ImTextureID>(textures->label_icon.id), ImVec2(24.0f, 24.0f), current_label) && !current_label;
+    toggle_label = draw_toggle_icon_button("editor_label_icon", static_cast<ImTextureID>(resource.label_icon.id), ImVec2(24.0f, 24.0f), current_label) && !current_label;
 
     std::string_view mode_name = "";
     switch (editor_mode) {

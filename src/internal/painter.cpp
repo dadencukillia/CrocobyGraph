@@ -8,17 +8,27 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 
 namespace CrocobyGraph {
 
-  void Painter::load() {
-    open_sans_font = LoadFontFromMemory(".ttf", OpenSansFontData, OpenSansFontSize, 96, nullptr, 0);
-    SetTextureFilter(open_sans_font.texture, TEXTURE_FILTER_BILINEAR);
-  }
+  struct FontResource {
+    Font open_sans;
 
-  Painter::~Painter() {
-    UnloadFont(open_sans_font);
-  }
+    FontResource() {
+      open_sans = LoadFontFromMemory(".ttf", OpenSansFontData, OpenSansFontSize, 96, nullptr, 0);
+      SetTextureFilter(open_sans.texture, TEXTURE_FILTER_BILINEAR);
+      std::cout << "Open Sans font loaded\n";
+    }
+
+    ~FontResource() {
+      UnloadFont(open_sans);
+      std::cout << "Open Sans font unloaded\n";
+    }
+  };
+
+  Painter::Painter() = default;
+  Painter::~Painter() = default;
 
   void Painter::draw_jelly_node(const std::vector<PositionComponent>& points, Vector2 center_pos, Color color) {
     Vector2 fan_points[jelly_points + 2] = {};
@@ -65,12 +75,15 @@ namespace CrocobyGraph {
     DrawSplineBezierCubic(points, 4, thickness, color);
   }
 
-  void Painter::draw_label(Vector2 pos, std::string_view text, Color color) const {
+  void Painter::draw_label(Vector2 pos, std::string_view text, Color color) {
+    ResourceCounter<FontResource> font_resource {};
+    const auto& resource = font_resource.get();
+
     float font_size = 18.0f;
     float spacing = 0.0f;
 
-    auto dimension = MeasureTextEx(open_sans_font, text.data(), font_size, spacing);
-    DrawTextEx(open_sans_font, text.data(), { pos.x - dimension.x / 2.0f, pos.y - dimension.y / 2.0f }, font_size, spacing, color);
+    auto dimension = MeasureTextEx(resource.open_sans, text.data(), font_size, spacing);
+    DrawTextEx(resource.open_sans, text.data(), { pos.x - dimension.x / 2.0f, pos.y - dimension.y / 2.0f }, font_size, spacing, color);
   }
 
   void Painter::draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve, float thickness) {

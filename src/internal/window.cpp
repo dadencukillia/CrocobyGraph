@@ -70,8 +70,6 @@ namespace CrocobyGraph {
         frame->load(*ecs);
       }
     }
-
-    painter.load();
   }
 
   void Window::draw_background() {

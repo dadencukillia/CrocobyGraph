@@ -8,8 +8,6 @@
 
 namespace CrocobyGraph {
 
-  struct IconTextures;
-
   enum class EditMode {
     View,
     Node,
@@ -26,7 +24,6 @@ namespace CrocobyGraph {
   };
 
   class EditorFrame : public WindowUIFrame {
-    IconTextures* textures { nullptr };
     EditMode editor_mode { EditMode::View };
     DragState selection_drag {};
     DragState motion_drag {};
@@ -42,10 +39,11 @@ namespace CrocobyGraph {
     void process_motion(const WindowInfo& info, GraphECS& ecs, bool current_node, bool current_edge, bool current_label);
 
   public:
-    EditorFrame() = default;
+    EditorFrame();
+    ~EditorFrame();
+
     EditorFrame(const EditorFrame&) = delete;
     EditorFrame& operator=(const EditorFrame&) = delete;
-    ~EditorFrame();
 
     void load(GraphECS& ecs) override;
     void draw(const WindowInfo& info, GraphECS& ecs) override;
