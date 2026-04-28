@@ -7,26 +7,26 @@
 
 namespace CrocobyGraph {
 
-  float raylib_ease_cubic_in_out(float t, float b, float c, float d) {
-    float result = 0.0f;
+  float ease_cubic_in_out(float t, float b, float c, float d) {
+    float inv_div = 1.0f / d;
 
-    if ((t /= 0.5f*d) < 1) result = 0.5f*c*t*t*t + b;
-    else {
-      t -= 2;
-      result = 0.5f*c*(t*t*t + 2.0f) + b;
-    }
-
-    return result;
+    return t * inv_div < 0.5f ?
+      4.0f * c * t * t * t * inv_div * inv_div * inv_div + b :
+      0.5f * c * (t * t * t * inv_div * inv_div * inv_div * 8.0f + 2.0f) + b;
   }
 
   Vector2 calculate_bezier_cubic_dot(Vector2 start, Vector2 end, Vector2 c1, Vector2 c2, float divisions, float index) {
-    const float step = 1.0f / divisions;
+    float step = 1.0f / divisions;
     float t = step * index;
 
-    float a = powf(1.0f - t, 3);
-    float b = 3.0f*powf(1.0f - t, 2)*t;
-    float c = 3.0f*(1.0f - t)*powf(t, 2);
-    float d = powf(t, 3);
+    float t_inv = 1.0f - t;
+    float t_inv_sq = t_inv * t_inv;
+    float t_sq = t * t;
+
+    float a = t_inv_sq * t_inv;
+    float b = 3.0f * t_inv_sq * t;
+    float c = 3.0f * t_inv * t_sq;
+    float d = t_sq * t;
 
     return {
       a * start.x + b * c1.x + c * c2.x + d * end.x,
@@ -37,7 +37,7 @@ namespace CrocobyGraph {
   Vector2 calculate_bezier_cubic_in_out_dot(Vector2 a, Vector2 b, float divisions, float index) {
     return {
       a.x + (b.x - a.x) / divisions * index,
-      raylib_ease_cubic_in_out(index, a.y, b.y - a.y, divisions),
+      ease_cubic_in_out(index, a.y, b.y - a.y, divisions),
     };
   }
 
@@ -48,7 +48,7 @@ namespace CrocobyGraph {
     float distance { 0.0f };
     uint32_t index { 0 };
     while (left != right) {
-      uint32_t mid = left + std::floor((right - left) / 2.0f);
+      uint32_t mid = left + std::floor((right - left) * 0.5f);
       index = mid;
       dot = spline_dot_function(index);
       distance = (dot.x - circle_center.x) * (dot.x - circle_center.x) + (dot.y - circle_center.y) * (dot.y - circle_center.y);
