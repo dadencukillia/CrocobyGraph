@@ -164,6 +164,8 @@ namespace CrocobyGraph {
         for (auto& entity : selection) {
           auto& edge = registry.get<EdgeEntity>(entity);
           edge.arrow_on_start = false;
+
+          if (edge.node_start == edge.node_end) edge.arrow_on_end = false;
         }
       }
 
@@ -172,6 +174,8 @@ namespace CrocobyGraph {
         for (auto& entity : selection) {
           auto& edge = registry.get<EdgeEntity>(entity);
           edge.arrow_on_end = false;
+
+          if (edge.node_start == edge.node_end) edge.arrow_on_start = false;
         }
       }
 
@@ -188,23 +192,42 @@ namespace CrocobyGraph {
         Batch batch {};
         for (auto& entity : selection) {
           auto edge = registry.get<EdgeEntity>(entity);
-          auto pos_a = registry.get<PositionComponent>(edge.node_start);
-          auto pos_b = registry.get<PositionComponent>(edge.node_end);
+          auto pos_a = registry.get<const PositionComponent>(edge.node_start);
 
-          auto node = batch.add_node({
-            .position = { (pos_a.x + pos_b.x) * 0.5f, (pos_a.y + pos_b.y) * 0.5f }
-          });
+          if (edge.node_start == edge.node_end) {
+            auto node = registry.get<const NodeEntity>(edge.node_start);
+            auto calc_params = calc_self_loop_params({ pos_a.x, pos_a.y }, node.radius);
+            auto curve_middle = calculate_bezier_cubic_dot({ pos_a.x, pos_a.y }, { pos_a.x, pos_a.y }, calc_params.control_point1, calc_params.control_point2, 2.0f, 1.0f);
 
-          batch.add_edge({
-            .node_start = edge.node_start,
-            .node_end = node,
-            .arrow_on_start = edge.arrow_on_start,
-          });
-          batch.add_edge({
-            .node_start = node,
-            .node_end = edge.node_end,
-            .arrow_on_end = edge.arrow_on_end,
-          });
+            auto created_node = batch.add_node({
+              .position = { curve_middle.x, curve_middle.y }
+            });
+            batch.add_edge({
+              .node_start = edge.node_start,
+              .node_end = created_node,
+              .arrow_on_start = edge.arrow_on_start || edge.arrow_on_end,
+              .arrow_on_end = edge.arrow_on_start || edge.arrow_on_end,
+            });
+          } else {
+            auto pos_b = registry.get<const PositionComponent>(edge.node_end);
+
+            auto node = batch.add_node({
+              .position = { (pos_a.x + pos_b.x) * 0.5f, (pos_a.y + pos_b.y) * 0.5f }
+            });
+
+            batch.add_edge({
+              .node_start = edge.node_start,
+              .node_end = node,
+              .arrow_on_start = edge.arrow_on_start,
+              .curve_type = edge.curve_type
+            });
+            batch.add_edge({
+              .node_start = node,
+              .node_end = edge.node_end,
+              .arrow_on_end = edge.arrow_on_end,
+              .curve_type = edge.curve_type
+            });
+          }
 
           registry.destroy(entity);
         }
@@ -217,6 +240,8 @@ namespace CrocobyGraph {
       if (ImGui::Button("Reverse")) {
         for (auto& entity : selection) {
           auto& edge = registry.get<EdgeEntity>(entity);
+          if (edge.node_start == edge.node_end) continue;
+
           std::swap(edge.node_start, edge.node_end);
         }
       }
@@ -241,21 +266,23 @@ namespace CrocobyGraph {
         static_cast<uint8_t>(rgba[3] * 255.0f)
       };
 
-      const char* types[] = { "Linear", "Step", "Ease" };
-      int current_curve_type;
-      switch (edge.curve_type) {
-      case EdgeCurveType::Linear: current_curve_type = 0; break;
-      case EdgeCurveType::Step: current_curve_type = 1; break;
-      case EdgeCurveType::Ease: current_curve_type = 2; break;
-      };
+      if (edge.node_start != edge.node_end) {
+        const char* types[] = { "Linear", "Step", "Ease" };
+        int current_curve_type;
+        switch (edge.curve_type) {
+        case EdgeCurveType::Linear: current_curve_type = 0; break;
+        case EdgeCurveType::Step: current_curve_type = 1; break;
+        case EdgeCurveType::Ease: current_curve_type = 2; break;
+        };
 
-      ImGui::Combo("Curve type", &current_curve_type, types, 3);
+        ImGui::Combo("Curve type", &current_curve_type, types, 3);
 
-      switch (current_curve_type) {
-      case 0: edge.curve_type = EdgeCurveType::Linear; break;
-      case 1: edge.curve_type = EdgeCurveType::Step; break;
-      case 2: edge.curve_type = EdgeCurveType::Ease; break;
-      };
+        switch (current_curve_type) {
+        case 0: edge.curve_type = EdgeCurveType::Linear; break;
+        case 1: edge.curve_type = EdgeCurveType::Step; break;
+        case 2: edge.curve_type = EdgeCurveType::Ease; break;
+        };
+      }
     }
   }
 
