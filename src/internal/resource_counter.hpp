@@ -36,6 +36,8 @@ namespace CrocobyGraph {
     }
 
   public:
+    // It's good to put this instance into singleton's field
+    // So RAII will automaticaly call the inc() and dec() methods
     ResourceCounter() {
       inc();
     }
@@ -53,10 +55,14 @@ namespace CrocobyGraph {
       return *get_resource();
     }
 
+    // Call in a singleton's constructor that uses the resource
+    // When the resource is unloaded the next use will load it again
+    // It ensures that resource will not be unloaded, so it helps to avoid multiple loadings
     static void inc() {
       get_use_counter()++;
     }
 
+    // Call in a singleton's destructor that uses the resource
     static void dec() {
       auto val = --get_use_counter();
       if (val == 0 && is_resource_loaded()) {
