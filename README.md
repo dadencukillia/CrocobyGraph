@@ -62,3 +62,17 @@ The division of source code into two directories maintains encapsulation clearly
 **What can I do if an interface class needs to use an external type as a field?**
 
 There are many ways to avoid including external headers. My favorite approach is to use **Forward Declarations** and **Opaque Pointers**.
+
+### src/internal/math.hpp vs src/internal/calc_impls.hpp
+To maintain a clean separation of concerns, we distinguish between general mathematical tools and project-specific calculations:
+- `src/internal/math.hpp` 
+
+    (Reuse-aimed): Contains pure, generic mathematical functions and constants (e.g., unit conversions, basic vector math).
+    It is independent of the project's configuration and can be easily reused in other modules.
+    Do not include `config.hpp` into `math.hpp`.
+
+- `src/internal/calc_impls.hpp` (Implementation-aimed):
+
+    Focuses on DRY (Don't Repeat Yourself) principle for complex calculations.
+    It is dependent on `config.hpp` and tailored specifically to `CrocobyGraph` logic.
+    As it focused on DRY every function is **constexpr** or **inline**.

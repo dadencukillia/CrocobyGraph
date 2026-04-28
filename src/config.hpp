@@ -12,6 +12,8 @@ namespace CrocobyGraph {
 
   // Primitive params
   inline constexpr float DEFAULT_NODE_RADIUS { 20.f };
+  inline constexpr float SELF_LOOP_WIDTH_DEGREES { 30.f };
+  inline constexpr float SELF_LOOP_LENGTH_MULTIPLIER { 4.f };
 
   // Physics
   inline constexpr float PHYSICS_ATTRACTION_CONSTANT { 5.f };

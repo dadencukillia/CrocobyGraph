@@ -2,6 +2,7 @@
 #include "../internal/painter.hpp"
 #include "../internal/window.hpp"
 #include "../internal/math.hpp"
+#include "../internal/calc_impls.hpp"
 #include "../internal/resource_counter.hpp"
 #include "../resources/editor_icons.hpp"
 #include "../config.hpp"
@@ -451,18 +452,12 @@ namespace CrocobyGraph {
           if (edge.node_start == edge.node_end) {
             auto& node = registry.get<const NodeEntity>(edge.node_start);
 
-            float angle = std::atan2(pos_a.y, pos_a.x);
-            float width = 30.0f * PI / 180.0f;
-            float length = node.radius * 4.0f;
-            Vector2 p1 = { pos_a.x + std::cos(angle - width) * length, pos_a.y + std::sin(angle - width) * length };
-            Vector2 p2 = { pos_a.x + std::cos(angle + width) * length, pos_a.y + std::sin(angle + width) * length };
-
-            bool in_selection { false };
+            auto calc_params = calc_self_loop_params({ pos_a.x, pos_a.y }, node.radius);
 
             uint8_t parts = 4;
             for (uint8_t part = 0; part < parts; ++part) {
-              if (approximately_check_bezier_line_in_rect([pos_a, p1, p2, parts, part](ApproximatelySplineCallbackParams a) {
-                return calculate_bezier_cubic_dot({ pos_a.x, pos_a.y }, { pos_a.x, pos_a.y }, p1, p2, a.divisions * static_cast<float>(parts), part * a.divisions + a.index);
+              if (approximately_check_bezier_line_in_rect([&pos_a, &calc_params, parts, part](ApproximatelySplineCallbackParams a) {
+                return calculate_bezier_cubic_dot({ pos_a.x, pos_a.y }, { pos_a.x, pos_a.y }, calc_params.control_point1, calc_params.control_point2, a.divisions * static_cast<float>(parts), part * a.divisions + a.index);
               }, corner_top_left_expanded, corner_bottom_right_expanded)) {
                 selection.insert(entity);
                 break;

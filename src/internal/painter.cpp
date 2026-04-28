@@ -3,6 +3,7 @@
 #include "../interface/entities.hpp"
 #include "../resources/open_sans.hpp"
 #include "math.hpp"
+#include "calc_impls.hpp"
 #include "physics.hpp"
 #include "raylib.h"
 #include <algorithm>
@@ -65,14 +66,8 @@ namespace CrocobyGraph {
   }
 
   void Painter::draw_self_loop(Vector2 pos, Color color, float radius, float thickness) {
-    float angle = std::atan2(pos.y, pos.x);
-    float width = 30.0f * PI / 180.0f;
-    float length = radius * 4.0f;
-    Vector2 p1 = { pos.x + std::cos(angle - width) * length, pos.y + std::sin(angle - width) * length };
-    Vector2 p2 = { pos.x + std::cos(angle + width) * length, pos.y + std::sin(angle + width) * length };
-
-    const Vector2 points[] = { pos, p1, p2, pos };
-    DrawSplineBezierCubic(points, 4, thickness, color);
+    auto calc_params = calc_self_loop_params(pos, radius);
+    DrawSplineSegmentBezierCubic(pos, calc_params.control_point1, calc_params.control_point2, pos, thickness, color);
   }
 
   void Painter::draw_label(Vector2 pos, std::string_view text, Color color) {
@@ -89,14 +84,10 @@ namespace CrocobyGraph {
   void Painter::draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve, float thickness) {
     if (from.x == to.x && from.y == to.y) {
       uint32_t divisions = 64;
-      float angle = std::atan2(from.y, from.x);
-      float width = 30 * PI / 180.0f;
-      float length = radius * 4.0f;
-      Vector2 p1 = { from.x + std::cos(angle - width) * length, from.y + std::sin(angle - width) * length };
-      Vector2 p2 = { from.x + std::cos(angle + width) * length, from.y + std::sin(angle + width) * length };
+      auto calc_params = calc_self_loop_params(from, radius);
 
       auto dot_by_index = [&](uint32_t index) {
-        return calculate_bezier_cubic_dot(from, to, p1, p2, divisions, static_cast<float>(index));
+        return calculate_bezier_cubic_dot(from, to, calc_params.control_point1, calc_params.control_point2, divisions, static_cast<float>(index));
       };
 
       auto result = approximately_circle_intersection(divisions, radius, to, dot_by_index, divisions / 2);

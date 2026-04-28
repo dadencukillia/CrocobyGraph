@@ -7,6 +7,7 @@
 #include "../config.hpp"
 #include "entt/entt.hpp"
 #include "math.hpp"
+#include "calc_impls.hpp"
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
@@ -112,24 +113,19 @@ namespace CrocobyGraph {
 
     // Draw edges (below nodes)
     for (auto [entity, edge] : scene->get_registry().view<const EdgeEntity>().each()) {
-      auto& a = positions[edge.node_start];
-      auto& b = positions[edge.node_end];
+      const auto& a = positions[edge.node_start];
 
-      if (a.x == b.x && a.y == b.y) {
+      if (edge.node_start == edge.node_end) {
         auto radius = nodes[edge.node_start].radius;
-        float length = radius * 4.0f;
-        float angle = std::atan2(a.y, a.x);
-        float width = 30.0f * PI / 180.0f;
-        Vector2 corner = { a.x + std::cos(angle) * length, a.y + std::sin(angle) * length };
-        Vector2 p1 = { a.x + std::cos(angle - width) * length, a.y + std::sin(angle - width) * length };
-        Vector2 p2 = { a.x + std::cos(angle + width) * length, a.y + std::sin(angle + width) * length };
+        auto calc_params = calc_self_loop_params({ a.x, a.y }, radius);
+        Vector2 corner = { a.x + std::cos(calc_params.angle) * calc_params.length, a.y + std::sin(calc_params.angle) * calc_params.length };
 
         positions.insert({ entity, { corner.x * 2 / 3, corner.y * 2 / 3 } });
 
-        float border_left = std::min(std::min(a.x, corner.x), std::min(p1.x, p2.x));
-        float border_right = std::max(std::max(a.x, corner.x), std::max(p1.x, p2.x));
-        float border_top = std::min(std::min(a.y, corner.y), std::min(p1.y, p2.y));
-        float border_bottom = std::max(std::max(a.y, corner.y), std::max(p1.y, p2.y));
+        float border_left = std::min(std::min(a.x, corner.x), std::min(calc_params.control_point1.x, calc_params.control_point2.x));
+        float border_right = std::max(std::max(a.x, corner.x), std::max(calc_params.control_point1.x, calc_params.control_point2.x));
+        float border_top = std::min(std::min(a.y, corner.y), std::min(calc_params.control_point1.y, calc_params.control_point2.y));
+        float border_bottom = std::max(std::max(a.y, corner.y), std::max(calc_params.control_point1.y, calc_params.control_point2.y));
 
         if (!check_rect_a_in_rect_b({ border_left, border_top }, { border_right, border_bottom }, camera_top_left, camera_bottom_right)) continue;
 
@@ -137,9 +133,10 @@ namespace CrocobyGraph {
 
         if (edge.arrow_on_start || edge.arrow_on_end) {
           auto radius = nodes[edge.node_start].radius;
-          painter.draw_arrow({ b.x, b.y }, { a.x, a.y }, radius, edge.color, edge.curve_type);
+          painter.draw_arrow({ a.x, a.y }, { a.x, a.y }, radius, edge.color, edge.curve_type);
         }
       } else {
+        const auto& b = positions[edge.node_end];
         positions.insert({ entity, { (a.x + b.x) / 2.0f, (a.y + b.y) / 2.0f } });
 
         float border_left = std::min(a.x, b.x) - 3.5f * window_states.camera_zoom;
