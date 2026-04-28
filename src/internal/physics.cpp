@@ -29,9 +29,9 @@ namespace CrocobyGraph {
     this->ecs = ecs;
 
     if (jelly) {
+      float angle_segment = 2.0f * PI / jelly_points;
       for (size_t i = 0; i < jelly_points; ++i) {
-        float angle = static_cast<float>(i) / jelly_points * 2.0f * PI;
-        jelly_ideal_points[i] = { std::cos(angle), std::sin(angle) };
+        float angle = static_cast<float>(i) * angle_segment;
         crossplatform_sincos(angle, &jelly_ideal_points[i].y, &jelly_ideal_points[i].x);
       }
     }
@@ -57,31 +57,34 @@ namespace CrocobyGraph {
     auto& registry = scene->get_registry();
 
     // Hooke's law
-    for (auto [edge_entity, edge] : registry.view<const EdgeEntity>().each()) {
-      auto [a_node, a_pos, a_vel] = registry.get<const NodeEntity, const PositionComponent, VelocityComponent>(edge.node_start);
-      auto [b_node, b_pos, b_vel] = registry.get<const NodeEntity, const PositionComponent, VelocityComponent>(edge.node_end);
+    for (const auto& [edge_entity, edge] : registry.view<const EdgeEntity>().each()) {
+      const auto& [a_node, a_pos, a_vel] = registry.get<const NodeEntity, const PositionComponent, VelocityComponent>(edge.node_start);
+      const auto& [b_node, b_pos, b_vel] = registry.get<const NodeEntity, const PositionComponent, VelocityComponent>(edge.node_end);
 
       Vector2 vector = { a_pos.x - b_pos.x, a_pos.y - b_pos.y };
       float distance_square = vector.x * vector.x + vector.y * vector.y + 0.1f;
       float distance = std::sqrt(distance_square);
       float force = PHYSICS_ATTRACTION_CONSTANT * (distance - PHYSICS_ATTRACTION_IDEAL_DISTANCE);
+
+      float force_apply_denominator = 1.0f / distance * force;
       Vector2 force_apply = {
-        vector.x / distance * force,
-        vector.y / distance * force
+        vector.x * force_apply_denominator,
+        vector.y * force_apply_denominator
       };
 
-      b_vel.x += delta * TARGET_TPS * force_apply.x / (b_node.radius * b_node.radius);
-      b_vel.y += delta * TARGET_TPS * force_apply.y / (b_node.radius * b_node.radius);
-      a_vel.x -= delta * TARGET_TPS * force_apply.x / (a_node.radius * a_node.radius);
-      a_vel.y -= delta * TARGET_TPS * force_apply.y / (a_node.radius * a_node.radius);
+      float vel_denominator = 1.0f / (b_node.radius * b_node.radius);
+      b_vel.x += delta * TARGET_TPS * force_apply.x * vel_denominator;
+      b_vel.y += delta * TARGET_TPS * force_apply.y * vel_denominator;
+      a_vel.x -= delta * TARGET_TPS * force_apply.x * vel_denominator;
+      a_vel.y -= delta * TARGET_TPS * force_apply.y * vel_denominator;
     }
 
-    for (auto [entity, node, pos, repulsion, velocity] : registry.view<const NodeEntity, const PositionComponent, const RepulsionComponent, VelocityComponent>().each()) {
+    for (const auto& [entity, node, pos, repulsion, velocity] : registry.view<const NodeEntity, const PositionComponent, const RepulsionComponent, VelocityComponent>().each()) {
       float mass = node.radius * node.radius;
       Vector2 forces = { 0.0f, 0.0f };
 
       // Coulomb's law
-      for (auto [another_entity, another_repulsion, another_pos] : registry.view<const RepulsionComponent, const PositionComponent>().each()) {
+      for (const auto& [another_entity, another_repulsion, another_pos] : registry.view<const RepulsionComponent, const PositionComponent>().each()) {
         if (entity == another_entity) continue;
 
         Vector2 vector = { pos.x - another_pos.x, pos.y - another_pos.y };
@@ -94,11 +97,14 @@ namespace CrocobyGraph {
 
       // Gravity force
       float center_distance = std::sqrt(pos.x * pos.x + pos.y * pos.y) + 0.1f;
-      Vector2 gravity_direction = { -pos.x / center_distance, -pos.y / center_distance };
+      float inv_center_distance = 1.0f / center_distance;
+      Vector2 gravity_direction = { -pos.x * inv_center_distance, -pos.y * inv_center_distance };
       forces.x += gravity_direction.x * PHYSICS_GRAVITY_CONSTANT * mass;
       forces.y += gravity_direction.y * PHYSICS_GRAVITY_CONSTANT * mass;
 
-      Vector2 acceleration = { forces.x / mass, forces.y / mass };
+      // Velocity calculations
+      float inv_mass = 1.0f / mass;
+      Vector2 acceleration = { forces.x * inv_mass, forces.y * inv_mass };
       velocity.x += acceleration.x * delta * TARGET_TPS;
       velocity.y += acceleration.y * delta * TARGET_TPS;
 
@@ -110,7 +116,7 @@ namespace CrocobyGraph {
   void Physics::move(double delta) {
     auto& registry = scene->get_registry();
 
-    for (auto [entity, pos, velocity] : registry.view<PositionComponent, const VelocityComponent>().each()) {
+    for (const auto& [entity, pos, velocity] : registry.view<PositionComponent, const VelocityComponent>().each()) {
       pos.x += velocity.x * delta;
       pos.y += velocity.y * delta;
     }
@@ -121,7 +127,7 @@ namespace CrocobyGraph {
     std::vector<entt::entity> jelly_to_free;
 
     // Make node with velocity be jelly
-    for (auto [entity, node, pos, velocity] : registry.view<const NodeEntity, const PositionComponent, const VelocityComponent>(entt::exclude<JellyComponent>).each()) {
+    for (const auto& [entity, node, pos, velocity] : registry.view<const NodeEntity, const PositionComponent, const VelocityComponent>(entt::exclude<JellyComponent>).each()) {
       if (velocity.x * velocity.x + velocity.y * velocity.y >= 900.0f) {
         std::vector<PositionComponent> points(jelly_points);
         for (size_t i = 0; i < jelly_points; ++i) {
@@ -134,7 +140,7 @@ namespace CrocobyGraph {
 
     // Move jelly points
     float threshold = 0.5f;
-    for (auto [entity, node, pos, velocity, jelly] : registry.view<const NodeEntity, const PositionComponent, const VelocityComponent, JellyComponent>().each()) {
+    for (const auto& [entity, node, pos, velocity, jelly] : registry.view<const NodeEntity, const PositionComponent, const VelocityComponent, JellyComponent>().each()) {
       float vel_value = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y) + 0.01f;
       Vector2 vel_dir = { velocity.x / vel_value, velocity.y / vel_value };
       bool is_nearly_ideal = true;
