@@ -393,6 +393,8 @@ namespace CrocobyGraph {
     auto& registry = ecs.get_scene().get_registry();
 
     if (info.left_button_down && !ImGui::GetIO().WantCaptureMouse && !motion_drag.dragging) {
+      // Selection states
+
       if (selection_drag.dragging) {
         selection_drag.end_x = info.mouse_local_x;
         selection_drag.end_y = info.mouse_local_y;
@@ -407,6 +409,8 @@ namespace CrocobyGraph {
       Vector2 corner_top_left = { std::min(selection_drag.start_x, selection_drag.end_x), std::min(selection_drag.start_y, selection_drag.end_y) };
       Vector2 corner_bottom_right = { std::max(selection_drag.start_x, selection_drag.end_x), std::max(selection_drag.start_y, selection_drag.end_y) };
 
+      // Draw selection box
+
       Vector2 translated_corner = translate_world_to_screen_coordinates(corner_top_left, { info.camera_x, info.camera_y }, info.camera_zoom, { static_cast<float>(info.width), static_cast<float>(info.height) });
       Vector2 translated_size = { (corner_bottom_right.x - corner_top_left.x) * info.camera_zoom, (corner_bottom_right.y - corner_top_left.y) * info.camera_zoom };
 
@@ -417,6 +421,8 @@ namespace CrocobyGraph {
       );
 
       DrawRectangleLinesEx(Rectangle { translated_corner.x, translated_corner.y, translated_size.x, translated_size.y }, 1.0f, { 0, 0, 180, 100 });
+
+      // Update items selection
 
       if (IsKeyUp(KEY_LEFT_CONTROL) && IsKeyUp(KEY_LEFT_SHIFT)) {
         selection.clear();
@@ -441,37 +447,59 @@ namespace CrocobyGraph {
 
         for (auto [entity, edge] : registry.view<const EdgeEntity>().each()) {
           auto pos_a = registry.get<const PositionComponent>(edge.node_start);
-          auto pos_b = registry.get<const PositionComponent>(edge.node_end);
 
-          if (!selection.contains(entity)) {
+          if (edge.node_start == edge.node_end) {
+            auto& node = registry.get<const NodeEntity>(edge.node_start);
+
+            float angle = std::atan2(pos_a.y, pos_a.x);
+            float width = 30.0f * PI / 180.0f;
+            float length = node.radius * 4.0f;
+            Vector2 p1 = { pos_a.x + std::cos(angle - width) * length, pos_a.y + std::sin(angle - width) * length };
+            Vector2 p2 = { pos_a.x + std::cos(angle + width) * length, pos_a.y + std::sin(angle + width) * length };
+
             bool in_selection { false };
-            switch(edge.curve_type) {
-            case EdgeCurveType::Linear:
-              in_selection = check_rect_collision_line(
-                { pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, 
-                corner_top_left_expanded, corner_bottom_right_expanded
-              );
-              break;
 
-            case EdgeCurveType::Ease:
-              in_selection = approximately_check_bezier_line_in_rect([pos_a, pos_b](ApproximatelySplineCallbackParams a) {
-                return calculate_bezier_cubic_in_out_dot({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, a.divisions, a.index);
-              }, corner_top_left_expanded, corner_bottom_right_expanded);
-              break;
-
-            case EdgeCurveType::Step:
-              float mid_x = pos_a.x + (pos_b.x - pos_a.x) / 2.0f;
-              in_selection = (
-                 check_rect_collision_line({ pos_a.x, pos_a.y }, { mid_x, pos_a.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
-                 check_rect_collision_line({ mid_x, pos_a.y }, { mid_x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
-                 check_rect_collision_line({ mid_x, pos_b.y }, { pos_b.x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded)
-              );
-
-              break;
+            uint8_t parts = 4;
+            for (uint8_t part = 0; part < parts; ++part) {
+              if (approximately_check_bezier_line_in_rect([pos_a, p1, p2, parts, part](ApproximatelySplineCallbackParams a) {
+                return calculate_bezier_cubic_dot({ pos_a.x, pos_a.y }, { pos_a.x, pos_a.y }, p1, p2, a.divisions * static_cast<float>(parts), part * a.divisions + a.index);
+              }, corner_top_left_expanded, corner_bottom_right_expanded)) {
+                selection.insert(entity);
+                break;
+              }
             }
+          } else {
+            auto pos_b = registry.get<const PositionComponent>(edge.node_end);
 
-            if (in_selection) {
-              temp_selection.insert(entity);
+            if (!selection.contains(entity)) {
+              bool in_selection { false };
+
+              switch(edge.curve_type) {
+              case EdgeCurveType::Linear:
+                in_selection = check_rect_collision_line(
+                  { pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, 
+                  corner_top_left_expanded, corner_bottom_right_expanded
+                );
+                break;
+
+              case EdgeCurveType::Ease:
+                in_selection = approximately_check_bezier_line_in_rect([pos_a, pos_b](ApproximatelySplineCallbackParams a) {
+                  return calculate_bezier_cubic_in_out_dot({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, a.divisions, a.index);
+                }, corner_top_left_expanded, corner_bottom_right_expanded);
+                break;
+
+              case EdgeCurveType::Step:
+                float mid_x = pos_a.x + (pos_b.x - pos_a.x) / 2.0f;
+                in_selection = (
+                   check_rect_collision_line({ pos_a.x, pos_a.y }, { mid_x, pos_a.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
+                   check_rect_collision_line({ mid_x, pos_a.y }, { mid_x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
+                   check_rect_collision_line({ mid_x, pos_b.y }, { pos_b.x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded)
+                );
+
+                break;
+              }
+
+              if (in_selection) temp_selection.insert(entity);
             }
           }
         }
@@ -483,6 +511,8 @@ namespace CrocobyGraph {
       temp_selection.clear();
       selection_drag.dragging = false;
     }
+
+    // Draw items selection
 
     if (prevent_selection_dying) {
       prevent_selection_dying = false;
