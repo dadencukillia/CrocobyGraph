@@ -27,6 +27,11 @@ namespace CrocobyGraph {
     };
   }
 
+  [[nodiscard]] constexpr std::pair<Vector2, Vector2> calc_step_curve_middle_points(Vector2 curve_start, Vector2 curve_end) {
+    float mid_x = curve_start.x + (curve_end.x - curve_start.x) / 2.0f;
+    return { { mid_x, curve_start.y }, { mid_x, curve_end.y } };
+  }
+
 }
 
 #endif

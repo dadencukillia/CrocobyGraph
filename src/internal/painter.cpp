@@ -57,10 +57,10 @@ namespace CrocobyGraph {
       break;
 
     case EdgeCurveType::Step:
-      float mid_x = from.x + (to.x - from.x) / 2.0f;
-      DrawLineEx(from, { mid_x, from.y }, thickness, color);
-      DrawLineEx({ mid_x, from.y }, { mid_x, to.y }, thickness, color);
-      DrawLineEx({ mid_x, to.y }, to, thickness, color);
+      auto middle_points = calc_step_curve_middle_points(from, to);
+      DrawLineEx(from, middle_points.first, thickness, color);
+      DrawLineEx(middle_points.first, middle_points.second, thickness, color);
+      DrawLineEx(middle_points.second, to, thickness, color);
       break;
     }
   }
@@ -109,8 +109,7 @@ namespace CrocobyGraph {
       radius -= result.distance;
     } else if (curve == EdgeCurveType::Step) {
       if (to.x != from.x) {
-        float mid_x = from.x + (to.x - from.x) / 2.0f;
-        from = { mid_x, to.y };
+        from = calc_step_curve_middle_points(from, to).second;
       }
     }
 
@@ -119,7 +118,7 @@ namespace CrocobyGraph {
     Vector2 normalized = { vector.x / length, vector.y / length };
     Vector2 pos = { to.x - normalized.x * radius, to.y - normalized.y * radius };
     float angle = std::atan2(-normalized.y, -normalized.x);
-    float sharpness = 30.0 * PI / 180.0;
+    float sharpness = EDGE_ARROW_SHARPNESS_DEGRESS * PI / 180.0;
     float len = 10.0;
 
     Vector2 first = { pos.x + static_cast<float>(cos(angle + sharpness)) * len, pos.y + static_cast<float>(sin(angle + sharpness)) * len };

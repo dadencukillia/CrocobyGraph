@@ -69,10 +69,10 @@ To maintain a clean separation of concerns, we distinguish between general mathe
 
     (Reuse-aimed): Contains pure, generic mathematical functions and constants (e.g., unit conversions, basic vector math).
     It is independent of the project's configuration and can be easily reused in other modules.
-    Do not include `config.hpp` into `math.hpp`.
+    Do not include `config.hpp` into `math.hpp` and `math.cpp`.
 
 - `src/internal/calc_impls.hpp` (Implementation-aimed):
 
     Focuses on DRY (Don't Repeat Yourself) principle for complex calculations.
     It is dependent on `config.hpp` and tailored specifically to `CrocobyGraph` logic.
-    As it focused on DRY every function is **constexpr** or **inline**.
+    Since it focused on DRY every function is **constexpr** or **inline**.
