@@ -7,7 +7,7 @@
 
 namespace CrocobyGraph {
 
-  Batch decompose(std::vector<LayoutGraphNode>&& nodes);
+  [[nodiscard]] Batch decompose(std::vector<LayoutGraphNode>&& nodes);
 
 }
 

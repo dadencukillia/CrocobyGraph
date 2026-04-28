@@ -9,7 +9,7 @@
 namespace CrocobyGraph {
 
   template <unsigned int IN_COUNT, unsigned int HIDDEN_LAYERS_COUNT, unsigned int OUT_COUNT>
-  inline Batch neural_network(
+  [[nodiscard]] inline Batch neural_network(
     const std::string (&&in_names)[IN_COUNT],
     const unsigned int (&hidden_neurons)[HIDDEN_LAYERS_COUNT],
     const std::string (&&out_names)[OUT_COUNT],

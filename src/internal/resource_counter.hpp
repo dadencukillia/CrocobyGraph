@@ -49,7 +49,7 @@ namespace CrocobyGraph {
       dec();
     }
 
-    const T& get() {
+    [[nodiscard]] const T& get() {
       if (!is_resource_loaded()) load_resource();
 
       return *get_resource();

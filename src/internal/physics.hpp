@@ -16,16 +16,16 @@ namespace CrocobyGraph {
     bool with_jelly { false };
     PositionComponent jelly_ideal_points[jelly_points] {};
 
+    void update_velocity(double delta);
+    void move(double delta);
+    void update_jelly(double delta);
+
   public:
     Physics() = default;
     ~Physics();
 
     void init(bool jelly, Scene* scene, GraphECS* ecs);
-
     void update(double delta);
-    void update_velocity(double delta);
-    void move(double delta);
-    void update_jelly(double delta);
   };
 
 }

@@ -9,7 +9,7 @@
 
 namespace CrocobyGraph {
 
-  Camera2D get_camera_2d(const WindowInfo& info);
+  [[nodiscard]] Camera2D get_camera_2d(const WindowInfo& info);
 
   class Window {
     Painter painter {};

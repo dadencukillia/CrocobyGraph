@@ -24,7 +24,7 @@ namespace CrocobyGraph {
 
   class ISystem {
   public:
-    virtual std::string_view get_system_name() = 0;
+    [[nodiscard]] virtual std::string_view get_system_name() = 0;
     virtual void init_system(InitEvent ev) {}
     virtual void on_tick(TickEvent ev) {
       ev.remove_system();

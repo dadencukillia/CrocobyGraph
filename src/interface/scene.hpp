@@ -18,7 +18,7 @@ namespace CrocobyGraph {
 
     void append(Batch&& batch, float offset_x = 0.0f, float offset_y = 0.0f);
     void clear();
-    entt::registry& get_registry();
+    [[nodiscard]] entt::registry& get_registry();
   };
 
 }

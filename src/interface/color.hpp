@@ -27,10 +27,10 @@ namespace CrocobyGraph {
       b((hex >> 8) & 0xFF),
       a(hex & 0xFF) {}
 
-    uint8_t get_red() const;
-    uint8_t get_green() const;
-    uint8_t get_blue() const;
-    uint8_t get_alpha() const;
+    [[nodiscard]] uint8_t get_red() const;
+    [[nodiscard]] uint8_t get_green() const;
+    [[nodiscard]] uint8_t get_blue() const;
+    [[nodiscard]] uint8_t get_alpha() const;
 
     void set_red(uint8_t);
     void set_green(uint8_t);
