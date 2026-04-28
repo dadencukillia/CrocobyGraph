@@ -78,7 +78,7 @@ namespace CrocobyGraph {
     float spacing = 0.0f;
 
     auto dimension = MeasureTextEx(resource.open_sans, text.data(), font_size, spacing);
-    DrawTextEx(resource.open_sans, text.data(), { pos.x - dimension.x / 2.0f, pos.y - dimension.y / 2.0f }, font_size, spacing, color);
+    DrawTextEx(resource.open_sans, text.data(), { pos.x - dimension.x * 0.5f, pos.y - dimension.y * 0.5f }, font_size, spacing, color);
   }
 
   void Painter::draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve, float thickness) {
@@ -90,7 +90,7 @@ namespace CrocobyGraph {
         return calculate_bezier_cubic_dot(from, to, calc_params.control_point1, calc_params.control_point2, divisions, static_cast<float>(index));
       };
 
-      auto result = approximately_circle_intersection(divisions, radius, to, dot_by_index, divisions / 2);
+      auto result = approximately_circle_intersection(divisions, radius, to, dot_by_index, divisions * 0.5f);
 
       from = dot_by_index(std::max(1u, result.intersection_point_index) - 1);
       to = result.intersection_point;
@@ -113,19 +113,24 @@ namespace CrocobyGraph {
       }
     }
 
-    Vector2 vector = { to.x - from.x, to.y - from.y };
-    float length = std::sqrt(vector.x * vector.x + vector.y * vector.y);
-    Vector2 normalized = { vector.x / length, vector.y / length };
+    constexpr float sharpness = EDGE_ARROW_SHARPNESS_DEGRESS * PI / 180.0f;
+    static const Vector2 rot_vec = {
+      std::cos(sharpness),
+      std::sin(sharpness)
+    };
+
+    Vector2 normalized = normalize_vector({ to.x - from.x, to.y - from.y });
+    Vector2 line = { -normalized.x * EDGE_ARROW_LENGTH, -normalized.y * EDGE_ARROW_LENGTH };
     Vector2 pos = { to.x - normalized.x * radius, to.y - normalized.y * radius };
-    float angle = std::atan2(-normalized.y, -normalized.x);
-    float sharpness = EDGE_ARROW_SHARPNESS_DEGRESS * PI / 180.0;
-    float len = 10.0;
 
-    Vector2 first = { pos.x + static_cast<float>(cos(angle + sharpness)) * len, pos.y + static_cast<float>(sin(angle + sharpness)) * len };
-    Vector2 second = { pos.x + static_cast<float>(cos(angle - sharpness)) * len, pos.y + static_cast<float>(sin(angle - sharpness)) * len };
+    Vector2 rel_a = rotate_vector(line, rot_vec);
+    Vector2 rel_b = rotate_vector(line, { rot_vec.x, -rot_vec.y });
 
-    DrawLineEx(pos, first, thickness, color);
-    DrawLineEx(pos, second, thickness, color);
+    Vector2 a = { pos.x + rel_a.x, pos.y + rel_a.y };
+    Vector2 b = { pos.x + rel_b.x, pos.y + rel_b.y };
+
+    DrawLineEx(pos, a, thickness, color);
+    DrawLineEx(pos, b, thickness, color);
   }
 
 }

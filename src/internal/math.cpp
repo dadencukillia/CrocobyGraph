@@ -9,10 +9,11 @@ namespace CrocobyGraph {
 
   float ease_cubic_in_out(float t, float b, float c, float d) {
     float inv_div = 1.0f / d;
+    float t_p = t * 2.0f * inv_div - 2.0f;
 
-    return t * inv_div < 0.5f ?
+    return t < 0.5f * d ?
       4.0f * c * t * t * t * inv_div * inv_div * inv_div + b :
-      0.5f * c * (t * t * t * inv_div * inv_div * inv_div * 8.0f + 2.0f) + b;
+      0.5f * c * (t_p * t_p * t_p + 2.0f) + b;
   }
 
   Vector2 calculate_bezier_cubic_dot(Vector2 start, Vector2 end, Vector2 c1, Vector2 c2, float divisions, float index) {

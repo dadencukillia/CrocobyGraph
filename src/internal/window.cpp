@@ -118,7 +118,7 @@ namespace CrocobyGraph {
       if (edge.node_start == edge.node_end) {
         auto radius = nodes[edge.node_start].radius;
         auto calc_params = calc_self_loop_params({ a.x, a.y }, radius);
-        Vector2 corner = { a.x + std::cos(calc_params.angle) * calc_params.length, a.y + std::sin(calc_params.angle) * calc_params.length };
+        Vector2 corner = { a.x + calc_params.axis.x, a.y + calc_params.axis.y };
 
         positions.insert({ entity, { corner.x * 2 / 3, corner.y * 2 / 3 } });
 

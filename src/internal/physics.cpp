@@ -5,6 +5,7 @@
 #include "../config.hpp" 
 #include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
+#include "math.hpp"
 #include "raylib.h"
 #include <cmath>
 #include <cstddef>
@@ -27,11 +28,13 @@ namespace CrocobyGraph {
     this->scene = scene;
     this->ecs = ecs;
 
-    for (size_t i = 0; i < jelly_points; ++i) {
-      float angle = static_cast<float>(i) / jelly_points * 2.0f * PI;
-      jelly_ideal_points[i] = { std::cos(angle), std::sin(angle) };
+    if (jelly) {
+      for (size_t i = 0; i < jelly_points; ++i) {
+        float angle = static_cast<float>(i) / jelly_points * 2.0f * PI;
+        jelly_ideal_points[i] = { std::cos(angle), std::sin(angle) };
+        crossplatform_sincos(angle, &jelly_ideal_points[i].y, &jelly_ideal_points[i].x);
+      }
     }
-
   }
 
   void Physics::update(double delta) {

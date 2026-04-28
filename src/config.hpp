@@ -15,6 +15,7 @@ namespace CrocobyGraph {
   inline constexpr float SELF_LOOP_WIDTH_DEGREES { 30.f };
   inline constexpr float SELF_LOOP_LENGTH_MULTIPLIER { 4.f };
   inline constexpr float EDGE_ARROW_SHARPNESS_DEGRESS { 30.f };
+  inline constexpr float EDGE_ARROW_LENGTH { 10.f };
 
   // Physics
   inline constexpr float PHYSICS_ATTRACTION_CONSTANT { 5.f };
