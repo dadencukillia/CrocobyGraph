@@ -6,6 +6,7 @@
 #include "components.hpp"
 #include "entt/entity/fwd.hpp"
 #include <cstddef>
+#include <cstdint>
 #include <variant>
 #include <vector>
 
@@ -32,7 +33,7 @@ namespace CrocobyGraph {
     EdgeCurveType curve_type { EdgeCurveType::Linear };
   };
 
-  enum class PrimitiveType {
+  enum class PrimitiveType : uint8_t {
     Node,
     Edge,
     AttachLabel,
@@ -44,7 +45,7 @@ namespace CrocobyGraph {
     std::vector<EdgeBundle> edges_to_create;
     std::vector<std::pair<LabelEntity, Entity>> attach_labels_to_create;
     std::vector<std::pair<LabelEntity, PositionComponent>> free_labels_to_create;
-    std::vector<std::pair<size_t, PrimitiveType>> id_pointers;
+    std::vector<PrimitiveType> id_map_primitive;
 
   public:
     BeingCreatedEntity add_node(NodeBundle&&);

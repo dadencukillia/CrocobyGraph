@@ -3,6 +3,7 @@
 
 #include "batch.hpp"
 #include "entt/entity/fwd.hpp"
+#include <vector>
 
 namespace CrocobyGraph {
 
@@ -16,7 +17,7 @@ namespace CrocobyGraph {
     Scene& operator=(const Scene&) = delete;
     Scene(Scene&&) = delete;
 
-    void append(Batch&& batch, float offset_x = 0.0f, float offset_y = 0.0f);
+    std::vector<entt::entity> append(Batch&& batch, float offset_x = 0.0f, float offset_y = 0.0f);
     void clear();
     [[nodiscard]] entt::registry& get_registry();
   };
