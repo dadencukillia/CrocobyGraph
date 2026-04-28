@@ -1,9 +1,9 @@
 #include "math.hpp"
-#include "raylib.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <queue>
+#include "raylib.h"
 
 namespace CrocobyGraph {
 

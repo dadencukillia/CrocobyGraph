@@ -1,7 +1,7 @@
 #include "color.hpp"
-#include "raylib.h"
 #include <string>
 #include <format>
+#include "raylib.h"
 
 namespace CrocobyGraph {
 

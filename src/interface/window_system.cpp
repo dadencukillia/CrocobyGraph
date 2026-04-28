@@ -1,9 +1,9 @@
 #include "window_system.hpp"
 #include "../internal/window.hpp"
 #include "ecs.hpp"
-#include "raylib.h"
 #include <cassert>
 #include <memory>
+#include "raylib.h"
 
 namespace CrocobyGraph {
 

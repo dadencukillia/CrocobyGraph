@@ -8,12 +8,11 @@
 #include "entt/entt.hpp"
 #include "math.hpp"
 #include "calc_impls.hpp"
-#include "raylib.h"
-#include "imgui.h"
 #include "rlImGui.h"
 #include <algorithm>
-#include <cmath>
 #include <cstdint>
+#include "raylib.h"
+#include "imgui.h"
 
 namespace CrocobyGraph {
 

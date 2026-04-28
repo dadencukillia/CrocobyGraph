@@ -6,10 +6,10 @@
 #include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
 #include "math.hpp"
-#include "raylib.h"
 #include <cmath>
 #include <cstddef>
 #include <vector>
+#include "raylib.h"
 
 namespace CrocobyGraph {
 

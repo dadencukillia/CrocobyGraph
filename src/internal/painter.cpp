@@ -5,11 +5,11 @@
 #include "math.hpp"
 #include "calc_impls.hpp"
 #include "physics.hpp"
-#include "raylib.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include "raylib.h"
 
 namespace CrocobyGraph {
 

@@ -2,7 +2,6 @@
 #include "batch.hpp"
 #include "components.hpp"
 #include "entities.hpp"
-#include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
 #include <cstddef>
 #include <variant>

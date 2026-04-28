@@ -34,8 +34,11 @@ namespace CrocobyGraph {
   }
 
   inline void crossplatform_sincos(float angle, float* s, float* c) noexcept {
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__GNUC__)
     sincosf(angle, s, c); 
+#elif defined(__clang__)
+    *s = __builtin_sinf(angle);
+    *c = __builtin_cosf(angle);
 #else
     *s = std::sin(angle);
     *c = std::cos(angle);
