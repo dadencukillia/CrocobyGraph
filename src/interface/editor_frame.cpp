@@ -68,7 +68,7 @@ namespace CrocobyGraph {
   void EditorFrame::load(GraphECS& ecs) {}
 
   inline std::optional<entt::entity> get_node_connection(const entt::registry& registry, const entt::entity& node_a, const entt::entity& node_b) {
-    for (auto [entity, edge] : registry.view<EdgeEntity>().each()) {
+    for (const auto& [entity, edge] : registry.view<const EdgeEntity>().each()) {
       if ((edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a)) {
         return entity;
       }
@@ -181,7 +181,7 @@ namespace CrocobyGraph {
 
       ImGui::SameLine();
       if (ImGui::Button("Both <>##remove_both")) {
-        for (auto& entity : selection) {
+        for (auto entity : selection) {
           auto& edge = registry.get<EdgeEntity>(entity);
           edge.arrow_on_start = false;
           edge.arrow_on_end = false;
@@ -190,12 +190,12 @@ namespace CrocobyGraph {
 
       if (ImGui::Button("Divide")) {
         Batch batch {};
-        for (auto& entity : selection) {
-          auto edge = registry.get<EdgeEntity>(entity);
-          auto pos_a = registry.get<const PositionComponent>(edge.node_start);
+        for (auto entity : selection) {
+          const auto& edge = registry.get<const EdgeEntity>(entity);
+          const auto& pos_a = registry.get<const PositionComponent>(edge.node_start);
 
           if (edge.node_start == edge.node_end) {
-            auto node = registry.get<const NodeEntity>(edge.node_start);
+            const auto& node = registry.get<const NodeEntity>(edge.node_start);
             auto calc_params = calc_self_loop_params({ pos_a.x, pos_a.y }, node.radius);
             auto curve_middle = calculate_bezier_cubic_dot({ pos_a.x, pos_a.y }, { pos_a.x, pos_a.y }, calc_params.control_point1, calc_params.control_point2, 2.0f, 1.0f);
 
@@ -209,7 +209,7 @@ namespace CrocobyGraph {
               .arrow_on_end = edge.arrow_on_start || edge.arrow_on_end,
             });
           } else {
-            auto pos_b = registry.get<const PositionComponent>(edge.node_end);
+            const auto& pos_b = registry.get<const PositionComponent>(edge.node_end);
 
             auto node = batch.add_node({
               .position = { (pos_a.x + pos_b.x) * 0.5f, (pos_a.y + pos_b.y) * 0.5f }
@@ -238,7 +238,7 @@ namespace CrocobyGraph {
 
       ImGui::SameLine();
       if (ImGui::Button("Reverse")) {
-        for (auto& entity : selection) {
+        for (auto entity : selection) {
           auto& edge = registry.get<EdgeEntity>(entity);
           if (edge.node_start == edge.node_end) continue;
 
@@ -365,7 +365,7 @@ namespace CrocobyGraph {
       if (ImGui::Button("Select connected edges")) {
         std::unordered_set<entt::entity> edges;
 
-        for (auto [entity, edge] : registry.view<EdgeEntity>().each()) {
+        for (const auto& [entity, edge] : registry.view<const EdgeEntity>().each()) {
           if (selection.contains(edge.node_start) || selection.contains(edge.node_end)) {
             edges.insert(entity);
           }
@@ -458,7 +458,7 @@ namespace CrocobyGraph {
       temp_selection.clear();
 
       if (current_node) {
-        for (auto [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
+        for (const auto& [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
           if (pos.x + node.radius >= corner_top_left.x && pos.x - node.radius <= corner_bottom_right.x && pos.y + node.radius >= corner_top_left.y && pos.y - node.radius <= corner_bottom_right.y) {
             if (!selection.contains(entity)) {
               temp_selection.insert(entity);
@@ -473,7 +473,7 @@ namespace CrocobyGraph {
           corner_bottom_right_expanded = { corner_bottom_right_expanded.x + 5.0f, corner_bottom_right_expanded.y + 5.0f };
         }
 
-        for (auto [entity, edge] : registry.view<const EdgeEntity>().each()) {
+        for (const auto& [entity, edge] : registry.view<const EdgeEntity>().each()) {
           auto pos_a = registry.get<const PositionComponent>(edge.node_start);
 
           if (edge.node_start == edge.node_end) {
@@ -546,11 +546,11 @@ namespace CrocobyGraph {
     Color selection_color = { 0, 0, 180, 100 };
 
     for (auto* selection_list : { &selection, &temp_selection }) {
-      for (auto& selected : *selection_list) {
+      for (auto selected : *selection_list) {
         if (!registry.valid(selected)) continue;
 
         if (current_node) {
-          auto [node, pos] = registry.get<const NodeEntity, const PositionComponent>(selected);
+          const auto& [node, pos] = registry.get<const NodeEntity, const PositionComponent>(selected);
 
           DrawCircleV(
             { pos.x, pos.y }, 
@@ -558,8 +558,8 @@ namespace CrocobyGraph {
             selection_color
           );
         } else if (current_edge) {
-          auto edge = registry.get<const EdgeEntity>(selected);
-          auto pos_a = registry.get<const PositionComponent>(edge.node_start);
+          const auto& edge = registry.get<const EdgeEntity>(selected);
+          const auto& pos_a = registry.get<const PositionComponent>(edge.node_start);
           float thickness = EDGES_THICKNESS * 2.0f;
 
           if (edge.node_start == edge.node_end) {
@@ -572,7 +572,7 @@ namespace CrocobyGraph {
               thickness
             );
           } else {
-            auto pos_b = registry.get<const PositionComponent>(edge.node_end);
+            const auto& pos_b = registry.get<const PositionComponent>(edge.node_end);
 
             Painter::draw_edge(
               { pos_a.x, pos_a.y },
@@ -599,7 +599,7 @@ namespace CrocobyGraph {
 
     if (info.right_button_down) {
       if (motion_drag.dragging) {
-        for (auto& select_entity : selection) {
+        for (auto select_entity : selection) {
           if (!registry.valid(select_entity)) continue;
           auto& pos = registry.get<PositionComponent>(select_entity);
           pos.x += info.mouse_local_x - motion_drag.end_x;
