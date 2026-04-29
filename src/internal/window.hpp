@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_WINDOW_HPP_
-#define _CGRAPH_WINDOW_HPP_
+#ifndef _CGRAPH_INTERNAL_WINDOW_HPP_
+#define _CGRAPH_INTERNAL_WINDOW_HPP_
 
 #include "../interface/ecs.hpp"
 #include "../interface/scene.hpp"

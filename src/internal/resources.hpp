@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_RESOURCES_HPP_
-#define _CGRAPH_RESOURCES_HPP_
+#ifndef _CGRAPH_INTERNAL_RESOURCES_HPP_
+#define _CGRAPH_INTERNAL_RESOURCES_HPP_
 
 #include "raylib.h"
 

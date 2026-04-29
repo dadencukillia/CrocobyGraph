@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_NEURAL_NETWORK_HPP_
-#define _CGRAPH_NEURAL_NETWORK_HPP_
+#ifndef _CGRAPH_INTERFACE_NEURAL_NETWORK_HPP_
+#define _CGRAPH_INTERFACE_NEURAL_NETWORK_HPP_
 
 #include "batch.hpp"
 #include "entities.hpp"

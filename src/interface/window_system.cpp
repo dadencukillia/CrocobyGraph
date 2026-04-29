@@ -7,6 +7,12 @@
 
 namespace CrocobyGraph {
 
+  const Font& get_font() {
+    ResourceCounter<FontResource> font_res;
+
+    return font_res.get().open_sans;
+  }
+
   const std::string_view WindowSystem::system_name { "dev.crocobygraph.window" };
 
   WindowSystem::~WindowSystem() {

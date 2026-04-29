@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_PAINTER_HPP_
-#define _CGRAPH_PAINTER_HPP_
+#ifndef _CGRAPH_INTERNAL_PAINTER_HPP_
+#define _CGRAPH_INTERNAL_PAINTER_HPP_
 
 #include "../interface/color.hpp"
 #include "../interface/components.hpp"

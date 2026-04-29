@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_PHYSICS_HPP_
-#define _CGRAPH_PHYSICS_HPP_
+#ifndef _CGRAPH_INTERNAL_PHYSICS_HPP_
+#define _CGRAPH_INTERNAL_PHYSICS_HPP_
 
 #include "../interface/components.hpp"
 #include "../interface/ecs.hpp"

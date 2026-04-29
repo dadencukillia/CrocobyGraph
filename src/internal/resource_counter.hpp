@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_RESOURCE_COUNTER_HPP_
-#define _CGRAPH_RESOURCE_COUNTER_HPP_
+#ifndef _CGRAPH_INTERNAL_RESOURCE_COUNTER_HPP_
+#define _CGRAPH_INTERNAL_RESOURCE_COUNTER_HPP_
 
 #include <cassert>
 #include <cstdint>

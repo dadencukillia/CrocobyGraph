@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_BATCH_HPP_
-#define _CGRAPH_BATCH_HPP_
+#ifndef _CGRAPH_INTERFACE_BATCH_HPP_
+#define _CGRAPH_INTERFACE_BATCH_HPP_
 
 #include "../config.hpp"
 #include "entities.hpp"

@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_DECOMPOSE_HPP_
-#define _CGRAPH_DECOMPOSE_HPP_
+#ifndef _CGRAPH_INTERFACE_DECOMPOSE_HPP_
+#define _CGRAPH_INTERFACE_DECOMPOSE_HPP_
 
 #include "batch.hpp"
 #include "layout.hpp"

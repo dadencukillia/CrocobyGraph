@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_ECS_HPP_
-#define _CGRAPH_ECS_HPP_
+#ifndef _CGRAPH_INTERFACE_ECS_HPP_
+#define _CGRAPH_INTERFACE_ECS_HPP_
 
 #include "scene.hpp"
 #include "systems.hpp"

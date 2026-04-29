@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_EDITOR_FRAME_HPP_
-#define _CGRAPH_EDITOR_FRAME_HPP_
+#ifndef _CGRAPH_INTERFACE_EDITOR_FRAME_HPP_
+#define _CGRAPH_INTERFACE_EDITOR_FRAME_HPP_
 
 #include "ecs.hpp"
 #include "entt/entity/fwd.hpp"

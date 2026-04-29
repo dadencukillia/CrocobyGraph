@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_COLOR_HPP_
-#define _CGRAPH_COLOR_HPP_
+#ifndef _CGRAPH_INTERFACE_COLOR_HPP_
+#define _CGRAPH_INTERFACE_COLOR_HPP_
 
 #include <cstdint>
 #include <ostream>

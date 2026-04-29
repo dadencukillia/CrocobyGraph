@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_ENTITIES_HPP_
-#define _CGRAPH_ENTITIES_HPP_
+#ifndef _CGRAPH_INTERFACE_ENTITIES_HPP_
+#define _CGRAPH_INTERFACE_ENTITIES_HPP_
 
 #include "color.hpp"
 #include "../config.hpp"

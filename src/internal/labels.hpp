@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_LABELS_HPP_
-#define _CGRAPH_LABELS_HPP_
+#ifndef _CGRAPH_INTERNAL_LABELS_HPP_
+#define _CGRAPH_INTERNAL_LABELS_HPP_
 
 #include "../interface/entities.hpp"
 #include "../interface/components.hpp"

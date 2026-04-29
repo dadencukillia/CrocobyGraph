@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_SCENE_HPP_
-#define _CGRAPH_SCENE_HPP_
+#ifndef _CGRAPH_INTERFACE_SCENE_HPP_
+#define _CGRAPH_INTERFACE_SCENE_HPP_
 
 #include "batch.hpp"
 #include "entt/entity/fwd.hpp"

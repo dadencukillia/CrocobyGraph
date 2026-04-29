@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_CALC_IMPLS_HPP_
-#define _CGRAPH_CALC_IMPLS_HPP_
+#ifndef _CGRAPH_INTERNAL_CALC_IMPLS_HPP_
+#define _CGRAPH_INTERNAL_CALC_IMPLS_HPP_
 
 #include <utility>
 #include "raylib.h"

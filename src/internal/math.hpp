@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_MATH_HPP_
-#define _CGRAPH_MATH_HPP_
+#ifndef _CGRAPH_INTERNAL_MATH_HPP_
+#define _CGRAPH_INTERNAL_MATH_HPP_
 
 #include <cmath>
 #include <cstdint>

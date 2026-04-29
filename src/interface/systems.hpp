@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_SYSTEMS_HPP_
-#define _CGRAPH_SYSTEMS_HPP_
+#ifndef _CGRAPH_INTERFACE_SYSTEMS_HPP_
+#define _CGRAPH_INTERFACE_SYSTEMS_HPP_
 
 #include <functional>
 #include <string_view>

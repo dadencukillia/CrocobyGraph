@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_WINDOW_SYSTEM_HPP_
-#define _CGRAPH_WINDOW_SYSTEM_HPP_
+#ifndef _CGRAPH_INTERFACE_WINDOW_SYSTEM_HPP_
+#define _CGRAPH_INTERFACE_WINDOW_SYSTEM_HPP_
 
 #include "ecs.hpp"
 #include "systems.hpp"
@@ -7,9 +7,13 @@
 #include <string_view>
 #include <vector>
 
+struct Font;
+
 namespace CrocobyGraph {
 
   class Window;
+
+  const Font& get_font();
 
   struct CameraEntity {
     float zoom { 1.0f };

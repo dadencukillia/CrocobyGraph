@@ -1,5 +1,5 @@
-#ifndef _CGRAPH_COMPONENTS_HPP_
-#define _CGRAPH_COMPONENTS_HPP_
+#ifndef _CGRAPH_INTERFACE_COMPONENTS_HPP_
+#define _CGRAPH_INTERFACE_COMPONENTS_HPP_
 
 #include "entt/entity/fwd.hpp"
 
