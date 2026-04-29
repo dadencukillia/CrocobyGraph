@@ -7,22 +7,24 @@ namespace cg = CrocobyGraph;
 int main() {
   cg::Batch mb;
 
-  auto n1 = mb.easy_node() | "First node" | cg::Vector { 0.0f, 0.0f } | cg::ColorPresets::RED;
-  auto n2 = mb.easy_node() | cg::Vector { 50.0f, 50.0f };
-  auto n3 = mb.easy_node() | cg::Vector { 200.0f, -100.0f };
+  auto node1 = mb.easy_node() | "Node 1" | cg::Vector{0.0f, 0.0f};
+  auto node2 = mb.easy_node() | "Node 2" | cg::Vector{100.0f, 0.0f};
 
-  mb.add_label({
-    .label = "Hey",
-  }, n3);
+  node1 >> node2;
 
-  n1 == n2;
-  n2 >> n3;
-  n1 << n3;
-
-  cg::GraphECS ecs {};
+  cg::GraphECS ecs{};
   auto map = ecs.get_scene().append(std::move(mb));
 
-  ecs.get_scene().node_add_label(n2[map], "My text"); 
+  // Get real entt::entity IDs using the map
+  auto real_entity1 = node1[map];
+  auto real_entity2 = node2[map];
+
+  // Runtime updates
+  ecs.get_scene().set_pos(real_entity1, cg::Vector{50.0f, 50.0f});
+  ecs.get_scene().set_color(real_entity2, cg::ColorPresets::BLUE);
+  
+  // Add labels
+  ecs.get_scene().node_set_label(real_entity1, "Updated");
 
   ecs.add_system(cg::get_window_system<cg::PhysicsFrame, cg::EditorFrame>());
   ecs.run_loop();
