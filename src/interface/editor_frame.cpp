@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <optional>
 #include <string_view>
@@ -126,10 +127,101 @@ namespace CrocobyGraph {
 
       if (current_node) draw_node_specific_toolbar(info, ecs);
       else if (current_edge) draw_edge_specific_toolbar(info, ecs);
+      else if (current_label) draw_label_specific_toolbar(info, ecs);
     }
 
     ImGui::End();
     process_mode_toggle(toggle_view, toggle_node, toggle_edge, toggle_label);
+  }
+
+  inline void EditorFrame::draw_label_specific_toolbar(const WindowInfo& info, GraphECS& ecs) {
+    auto& registry = ecs.get_scene().get_registry();
+
+    if (selection.empty() && temp_selection.empty()) {
+      ImGui::Text("Left button - selection\nRight click - creation\nRight drag - grabbing");
+
+      if (!selection_drag.dragging && !motion_drag.dragging) {
+        if (info.right_button_down) {
+          auto entity = registry.create();
+          registry.emplace<LabelEntity>(entity, LabelEntity {
+            .label = "Text"
+          });
+          registry.emplace<PositionComponent>(entity, info.mouse_local_x, info.mouse_local_y);
+
+          selection.insert(entity);
+        }
+      }
+    } else if (selection.size() == 1) {
+      auto& label = registry.get<LabelEntity>(*selection.begin());
+      const auto pos = get_label_position(registry, *selection.begin());
+
+      ImGui::Text("LABEL x: %d, y: %d", static_cast<int>(pos.x), static_cast<int>(pos.y));
+
+      if (registry.any_of<AttachComponent>(*selection.begin())) {
+        const auto& attach = registry.get<const AttachComponent>(*selection.begin());
+        std::string_view attach_target = "";
+
+        if (registry.any_of<NodeEntity>(attach.target)) {
+          attach_target = "NODE";
+        } else if (registry.any_of<EdgeEntity>(attach.target)) {
+          attach_target = "EDGE";
+        }
+
+        ImGui::Text(
+          "Attached to %s with offset x: %d, y: %d", 
+          attach_target.data(), 
+          static_cast<int>(attach.offset_x),
+          static_cast<int>(attach.offset_y)
+        );
+
+        if (ImGui::Button("Select attach target")) {
+          selection = { attach.target };
+
+          if (registry.any_of<NodeEntity>(attach.target)) {
+            editor_mode = EditMode::Node;
+          } else if (registry.any_of<EdgeEntity>(attach.target)) {
+            editor_mode = EditMode::Edge;
+          }
+          
+        }
+      }
+
+      float rgba[] = { 
+        static_cast<float>(label.color.get_red()) / 255.0f,
+        static_cast<float>(label.color.get_green()) / 255.0f,
+        static_cast<float>(label.color.get_blue()) / 255.0f,
+        static_cast<float>(label.color.get_alpha()) / 255.0f
+      };
+
+      if (ImGui::ColorEdit4("Color", rgba)) prevent_selection_dying = true;
+
+      label.color = { 
+        static_cast<uint8_t>(rgba[0] * 255.0f),
+        static_cast<uint8_t>(rgba[1] * 255.0f),
+        static_cast<uint8_t>(rgba[2] * 255.0f),
+        static_cast<uint8_t>(rgba[3] * 255.0f)
+      };
+
+      char buf[100];
+      std::strncpy(buf, label.label.data(), sizeof(buf));
+      ImGui::InputText("Text", buf, sizeof(buf));
+
+      if (strcmp(label.label.c_str(), buf) != 0) {
+        label.label = buf;
+      }
+    }
+
+    if (!selection.empty()) {
+      if (ImGui::Button("Detach")) {
+        for (const auto entity : selection) {
+          if (registry.any_of<AttachComponent>(entity)) {
+            const auto pos = get_attach_label_position(registry, entity);
+            registry.emplace<PositionComponent>(entity, pos.x, pos.y);
+            registry.remove<AttachComponent>(entity);
+          }
+        }
+      }
+    }
   }
 
   inline void EditorFrame::draw_edge_specific_toolbar(const WindowInfo& info, GraphECS& ecs) {
@@ -247,6 +339,18 @@ namespace CrocobyGraph {
           std::swap(edge.node_start, edge.node_end);
         }
       }
+
+      if (ImGui::Button("Select labels")) {
+        std::unordered_set<entt::entity> new_selection;
+        for (const auto& [entity, label, attach] : registry.view<const LabelEntity, const AttachComponent>().each()) {
+          if (selection.contains(attach.target)) {
+            new_selection.insert(entity);
+          }
+        }
+
+        selection = new_selection;
+        editor_mode = EditMode::Label;
+      }
     }
 
     if (selection.size() == 1) {
@@ -284,6 +388,17 @@ namespace CrocobyGraph {
         case 1: edge.curve_type = EdgeCurveType::Step; break;
         case 2: edge.curve_type = EdgeCurveType::Ease; break;
         };
+      }
+
+      if (ImGui::Button("Create label")) {
+        auto entity = registry.create();
+        registry.emplace<LabelEntity>(entity, LabelEntity {
+          .label = "Text"
+        });
+        registry.emplace<AttachComponent>(entity, *selection.begin(), 0.0f, 0.0f);
+
+        selection = { entity };
+        editor_mode = EditMode::Label;
       }
     }
   }
@@ -340,6 +455,17 @@ namespace CrocobyGraph {
           });
         }
       }
+
+      if (ImGui::Button("Create label")) {
+        auto entity = registry.create();
+        registry.emplace<LabelEntity>(entity, LabelEntity {
+          .label = "Text"
+        });
+        registry.emplace<AttachComponent>(entity, *selection.begin(), 0.0f, 0.0f);
+
+        selection = { entity };
+        editor_mode = EditMode::Label;
+      }
     } else if (selection.size() == 2) {
       ImGui::SameLine();
       auto edge_connection = get_node_connection(registry, *selection.begin(), *std::next(selection.begin()));
@@ -375,6 +501,18 @@ namespace CrocobyGraph {
 
         selection = std::move(edges);
         editor_mode = EditMode::Edge;
+      }
+
+      if (ImGui::Button("Select labels")) {
+        std::unordered_set<entt::entity> new_selection;
+        for (const auto& [entity, label, attach] : registry.view<const LabelEntity, const AttachComponent>().each()) {
+          if (selection.contains(attach.target)) {
+            new_selection.insert(entity);
+          }
+        }
+
+        selection = new_selection;
+        editor_mode = EditMode::Label;
       }
     }
   }

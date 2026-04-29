@@ -61,26 +61,10 @@ namespace CrocobyGraph {
     } else {
       const auto& pos_b = registry.get<const PositionComponent>(edge_entity.node_end);
 
-      switch (edge_entity.curve_type) {
-        case EdgeCurveType::Linear: {
-          return {
-            (pos_a.x + pos_b.x) * 0.5f,
-            (pos_a.y + pos_b.y) * 0.5f,
-          };
-        }
-
-        case EdgeCurveType::Step: {
-          const auto middle_points = calc_step_curve_middle_points({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y });
-          return {
-            (middle_points.first.x + middle_points.second.x) * 0.5f,
-            (middle_points.first.y + middle_points.second.y) * 0.5f,
-          };
-        }
-
-        case EdgeCurveType::Ease: {
-          return calculate_bezier_cubic_in_out_dot({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, 2.0f, 1.0f);
-        }
-      }
+      return {
+        (pos_a.x + pos_b.x) * 0.5f,
+        (pos_a.y + pos_b.y) * 0.5f,
+      };
     }
   }
 
