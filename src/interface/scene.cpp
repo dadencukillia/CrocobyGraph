@@ -1,9 +1,15 @@
 #include "scene.hpp"
+#include "../internal/labels.hpp"
 #include "batch.hpp"
 #include "components.hpp"
 #include "entities.hpp"
+#include "entt/entity/entity.hpp"
+#include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
+#include <cassert>
 #include <cstddef>
+#include <stdexcept>
+#include <unordered_set>
 #include <variant>
 
 namespace CrocobyGraph {
@@ -40,6 +46,14 @@ namespace CrocobyGraph {
 
   Scene::~Scene() {
     delete registry;
+  }
+
+  entt::registry& Scene::get_registry() {
+    return *registry;
+  }
+
+  void Scene::clear() {
+    registry->clear();
   }
 
   std::vector<entt::entity> Scene::append(Batch&& batch, float offset_x, float offset_y) {
@@ -140,12 +154,268 @@ namespace CrocobyGraph {
     return ecs_ids;
   }
 
-  entt::registry& Scene::get_registry() {
-    return *registry;
+  Scene& Scene::operator+=(Batch&& batch) {
+    append(std::move(batch));
+    return *this;
   }
 
-  void Scene::clear() {
-    registry->clear();
+  PrimitiveType Scene::type(entt::entity entity) const {
+    if (is_node(entity)) return PrimitiveType::Node;
+    else if (is_edge(entity)) return PrimitiveType::Edge;
+    else if (is_free_label(entity)) return PrimitiveType::FreeLabel;
+    else if (is_attach_label(entity)) return PrimitiveType::AttachLabel;
+    else throw std::logic_error("Unknown type of the specified entity");
+  }
+
+  Vector Scene::pos(entt::entity entity) const {
+    if (registry->any_of<PositionComponent>(entity)) {
+      const auto pos_component = registry->get<const PositionComponent>(entity);
+      return { pos_component.x, pos_component.y };
+    } else if (is_attach_label(entity)) {
+      const auto label_pos = get_attach_label_position(*registry, entity);
+      return { label_pos.x, label_pos.y };
+    } else if (is_edge(entity)) {
+      const auto& edge = registry->get<const EdgeEntity>(entity);
+      const auto pos_component = registry->get<const PositionComponent>(edge.node_start);
+      return { pos_component.x, pos_component.y };
+    } else {
+      throw std::logic_error("Unknown type of the specified entity");
+    }
+  }
+
+  Vector Scene::pos_second(entt::entity entity) const {
+    if (is_edge(entity)) {
+      const auto& edge = registry->get<const EdgeEntity>(entity);
+      const auto pos_component = registry->get<const PositionComponent>(edge.node_end);
+      return { pos_component.x, pos_component.y };
+    } else return pos(entity);
+  }
+
+  void Scene::set_pos(entt::entity entity, Vector pos) {
+    if (registry->any_of<PositionComponent>(entity)) {
+      auto& pos_component = registry->get<PositionComponent>(entity);
+      pos_component.x = pos.x;
+      pos_component.y = pos.y;
+    } else if (is_attach_label(entity)) {
+      auto& attach = registry->get<AttachComponent>(entity);
+      const auto label_pos = get_attach_label_position(*registry, entity);
+      attach.offset_x += pos.x - label_pos.x;
+      attach.offset_y += pos.y - label_pos.y;
+    } else {
+      throw std::logic_error("Unknown type of the specified entity");
+    }
+  }
+
+  Color Scene::color(entt::entity entity) const {
+    if (is_node(entity)) {
+      return registry->get<const NodeEntity>(entity).color;
+    } else if (is_edge(entity)) {
+      return registry->get<const EdgeEntity>(entity).color;
+    } else if (is_any_label(entity)) {
+      return registry->get<const LabelEntity>(entity).color;
+    } else {
+      throw std::logic_error("Unknown type of the specified entity");
+    }
+  }
+
+  void Scene::set_color(entt::entity entity, Color color) {
+    if (is_node(entity)) {
+      registry->get<NodeEntity>(entity).color = color;
+    } else if (is_edge(entity)) {
+      registry->get<EdgeEntity>(entity).color = color;
+    } else if (is_any_label(entity)) {
+      registry->get<LabelEntity>(entity).color = color;
+    } else {
+      throw std::logic_error("Unknown type of the specified entity");
+    }
+  }
+
+  std::string_view Scene::label_text(entt::entity entity) const {
+    assert(is_any_label(entity) && "The specified entity must be a label");
+    return registry->get<const LabelEntity>(entity).label;
+  }
+
+  void Scene::set_label_text(entt::entity entity, std::string&& text) {
+    assert(is_any_label(entity) && "The specified entity must be a label");
+    registry->get<LabelEntity>(entity).label = std::move(text);
+  }
+
+  Vector Scene::label_offset(entt::entity entity) const {
+    assert(is_attach_label(entity) && "The specified entity must be an attach label");
+    const auto attach = registry->get<const AttachComponent>(entity);
+    return { attach.offset_x, attach.offset_y };
+  }
+
+  void Scene::set_label_offset(entt::entity entity, Vector offset) {
+    assert(is_attach_label(entity) && "The specified entity must be an attach label");
+    auto& attach = registry->get<AttachComponent>(entity);
+    attach.offset_x = offset.x;
+    attach.offset_y = offset.y;
+  }
+
+  std::unordered_set<entt::entity> Scene::node_neighbors(entt::entity entity) const {
+    assert(is_node(entity) && "The specified entity must be a node");
+    std::unordered_set<entt::entity> result;
+    for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
+      if (edge.node_start == entity) {
+        result.insert(edge.node_end);
+      } else if (edge.node_end == entity) {
+        result.insert(edge.node_start);
+      }
+    }
+
+    return result;
+  }
+
+  std::unordered_set<entt::entity> Scene::node_edges(entt::entity entity) const {
+    assert(is_node(entity) && "The specified entity must be a node");
+    std::unordered_set<entt::entity> result;
+    for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
+      if (edge.node_start == entity || edge.node_end == entity) {
+        result.insert(edge_entity);
+      }
+    }
+
+    return result;
+  }
+
+  std::unordered_set<entt::entity> Scene::node_labels(entt::entity entity) const {
+    std::unordered_set<entt::entity> result;
+    for (const auto& [label_entity, label, attach] : registry->view<const LabelEntity, const AttachComponent>().each()) {
+      if (attach.target == entity) {
+        result.insert(label_entity);
+      }
+    }
+
+    return result;
+  }
+
+  entt::entity Scene::node_set_label(entt::entity entity, std::string&& text, Color color) {
+    std::vector<entt::entity> remove_list;
+    entt::entity found { entt::null };
+
+    for (const auto& [label_entity, label, attach] : registry->view<LabelEntity, const AttachComponent>().each()) {
+      if (attach.target == entity) {
+        if (found == entt::null) {
+          label.label = std::move(text);
+          label.color = color;
+          found = label_entity;
+        } else {
+          remove_list.push_back(label_entity);
+        }
+      }
+    }
+
+    if (found == entt::null) {
+      return node_add_label(entity, std::move(text));
+    } else {
+      for (auto entity : remove_list) {
+        registry->destroy(entity);
+      }
+      return found;
+    }
+  }
+
+  bool Scene::nodes_connected(entt::entity node_a, entt::entity node_b) const {
+    for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
+      if ((edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  entt::entity Scene::nodes_connect(entt::entity node_a, entt::entity node_b) {
+    assert(!nodes_connected(node_a, node_b) && "Nodes must be disconnected for this operation");
+    auto edge = registry->create();
+    registry->emplace<EdgeEntity>(edge, EdgeEntity {
+      .node_start = node_a,
+      .node_end = node_b
+    });
+
+    return edge;
+  }
+
+  void Scene::nodes_disconnect(entt::entity node_a, entt::entity node_b) {
+    for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
+      if ((edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a)) {
+        registry->destroy(edge_entity);
+        return;
+      }
+    }
+  }
+
+  entt::entity Scene::node_add_label(entt::entity entity, std::string&& text, Color color) {
+    auto label = registry->create();
+    registry->emplace<LabelEntity>(label, LabelEntity {
+      .label = std::move(text),
+      .color = color
+    });
+    registry->emplace<AttachComponent>(label, entity, 0.0f, 0.0f);
+
+    return label;
+  }
+
+  std::pair<entt::entity, entt::entity> Scene::edge_nodes(entt::entity entity) const {
+    assert(is_edge(entity) && "The specified entity must be an edge");
+    const auto& edge = registry->get<const EdgeEntity>(entity);
+    return { edge.node_start, edge.node_end };
+  }
+
+  std::unordered_set<entt::entity> Scene::edge_labels(entt::entity entity) const {
+    return node_labels(entity);
+  }
+
+  entt::entity Scene::edge_set_label(entt::entity entity, std::string&& text, Color color) {
+    return node_set_label(entity, std::move(text), color);
+  }
+
+  std::pair<bool, bool> Scene::edge_arrows(entt::entity entity) const {
+    assert(is_edge(entity) && "The specified entity must be an edge");
+    const auto& edge = registry->get<const EdgeEntity>(entity);
+    return { edge.arrow_on_start, edge.arrow_on_end };
+  }
+
+  void Scene::set_edge_arrows(entt::entity entity, std::pair<bool, bool> arrows) {
+    assert(is_edge(entity) && "The specified entity must be an edge");
+    auto& edge = registry->get<EdgeEntity>(entity);
+    edge.arrow_on_start = arrows.first;
+    edge.arrow_on_end = arrows.second;
+  }
+
+  EdgeCurveType Scene::edge_curve(entt::entity entity) const {
+    assert(is_edge(entity) && "The specified entity must be an edge");
+    return registry->get<const EdgeEntity>(entity).curve_type;
+  }
+
+  void Scene::set_edge_curve(entt::entity entity, EdgeCurveType curve_type) {
+    assert(is_edge(entity) && "The specified entity must be an edge");
+    registry->get<EdgeEntity>(entity).curve_type = curve_type;
+  }
+
+  entt::entity Scene::edge_add_label(entt::entity entity, std::string&& text, Color color) {
+    return node_add_label(entity, std::move(text));
+  }
+
+  bool Scene::is_node(entt::entity entity) const {
+    return registry->any_of<NodeEntity>(entity);
+  }
+
+  bool Scene::is_edge(entt::entity entity) const {
+    return registry->any_of<EdgeEntity>(entity);
+  }
+
+  bool Scene::is_any_label(entt::entity entity) const {
+    return registry->any_of<LabelEntity>(entity);
+  }
+
+  bool Scene::is_free_label(entt::entity entity) const {
+    return registry->all_of<LabelEntity, PositionComponent>(entity);
+  }
+
+  bool Scene::is_attach_label(entt::entity entity) const {
+    return registry->all_of<LabelEntity, AttachComponent>(entity);
   }
 
 }
