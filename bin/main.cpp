@@ -5,47 +5,25 @@
 namespace cg = CrocobyGraph;
 
 int main() {
-  std::vector<cg::LayoutGraphNode> graphOne = {
-    {
-      .label = "Start",
-      .color = cg::ColorPresets::RED,
-      .points_to = { "finish" },
-      .id = "start",
-    },
-    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-    {
-      .label = "Finish",
-      .color = { 0x00FF00FF },
-      .points_to = { "start", "finish" },
-      .id = "finish",
-    },
-  };
+  cg::Batch mb;
 
-  std::string nodes[3] = { "Parent", "Child 1", "Child 2" };
-  const bool connections[3][3] = {
-    { true, true, true },
-    { false, true, false },
-    { false, false, true }
-  };
+  auto n1 = mb.easy_node() | "First node" | cg::Vector { 0.0f, 0.0f } | cg::ColorPresets::RED;
+  auto n2 = mb.easy_node() | cg::Vector { 50.0f, 50.0f };
+  auto n3 = mb.easy_node() | cg::Vector { 200.0f, -100.0f };
 
-  std::vector<cg::LayoutGraphNode> graphTwo = cg::layout_from_adjacency_matrix<3>(
-    std::move(nodes),
-    connections
-  );
+  mb.add_label({
+    .label = "Hey",
+  }, n3);
 
-  cg::Batch decomposed { cg::decompose(std::move(graphOne)) };
-  cg::Batch neural_network { cg::neural_network({
-    "Ticket class",
-    "Gender",
-    "Age",
-    "Parch",
-    "Fare"
-  }, { 32, 16 }, {
-    "Survivance chance"
-  }) };
+  n1 == n2;
+  n2 >> n3;
+  n1 << n3;
 
   cg::GraphECS ecs {};
-  ecs.get_scene() += std::move(neural_network);
+  auto map = ecs.get_scene().append(std::move(mb));
+
+  ecs.get_scene().node_add_label(n2[map], "My text"); 
+
   ecs.add_system(cg::get_window_system<cg::PhysicsFrame, cg::EditorFrame>());
   ecs.run_loop();
 
