@@ -627,8 +627,19 @@ namespace CrocobyGraph {
           const auto label_position = get_label_position(registry, selected);
           const auto label_size = get_label_size(registry.get<const LabelEntity>(selected));
 
+          const Vector2 label_corner = { label_position.x - label_size.x * 0.5f, label_position.y - label_size.y * 0.5f };
+
+          if (registry.any_of<AttachComponent>(selected)) {
+            const auto& attach = registry.get<const AttachComponent>(selected);
+            DrawLineDashed(
+              { label_position.x - attach.offset_x, label_position.y - attach.offset_y }, 
+              label_position, 
+              5, 5, { 0, 0, 0, 255 }
+            );
+          }
+
           DrawRectangleV(
-            { label_position.x - label_size.x * 0.5f, label_position.y - label_size.y * 0.5f },
+            label_corner,
             label_size,
             selection_color
           );
@@ -651,14 +662,27 @@ namespace CrocobyGraph {
       if (motion_drag.dragging) {
         for (auto select_entity : selection) {
           if (!registry.valid(select_entity)) continue;
-          auto& pos = registry.get<PositionComponent>(select_entity);
-          pos.x += info.mouse_local_x - motion_drag.end_x;
-          pos.y += info.mouse_local_y - motion_drag.end_y;
 
-          if (registry.all_of<VelocityComponent>(select_entity)) {
-            auto& vel = registry.get<VelocityComponent>(select_entity);
-            vel.x = 0.0f;
-            vel.y = 0.0f;
+          if (current_label) {
+            if (registry.any_of<AttachComponent>(select_entity)) {
+              auto& attach = registry.get<AttachComponent>(select_entity);
+              attach.offset_x += info.mouse_local_x - motion_drag.end_x;
+              attach.offset_y += info.mouse_local_y - motion_drag.end_y;
+            } else {
+              auto& pos = registry.get<PositionComponent>(select_entity);
+              pos.x += info.mouse_local_x - motion_drag.end_x;
+              pos.y += info.mouse_local_y - motion_drag.end_y;
+            }
+          } else {
+            auto& pos = registry.get<PositionComponent>(select_entity);
+            pos.x += info.mouse_local_x - motion_drag.end_x;
+            pos.y += info.mouse_local_y - motion_drag.end_y;
+
+            if (registry.all_of<VelocityComponent>(select_entity)) {
+              auto& vel = registry.get<VelocityComponent>(select_entity);
+              vel.x = 0.0f;
+              vel.y = 0.0f;
+            }
           }
         }
 
