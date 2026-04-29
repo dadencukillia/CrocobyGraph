@@ -1,0 +1,44 @@
+License notice for EnTT
+-----------------------
+
+Copyright (c) 2017-2026 Michele Caini, author of EnTT
+Licensed under The MIT License (MIT)
+
+Available at
+https://github.com/skypjack/entt/blob/main/LICENSE
+
+License notice for ImGui
+------------------------
+
+Copyright (c) 2014-2026 Omar Cornut
+Licensed under The MIT License (MIT)
+
+Available at
+https://github.com/ocornut/imgui/blob/master/LICENSE.txt
+
+License notice for Raylib
+-------------------------
+
+Copyright (c) 2013-2026 Ramon Santamaria (@raysan5)
+Licensed under an unmodified zlib/libpng license
+
+Available at
+https://github.com/raysan5/raylib/blob/master/LICENSE
+
+License notice for rlImGui
+--------------------------
+
+Copyright (c) 2020-2021 Jeffery Myers
+Licensed under an zlib license
+
+Available at
+https://github.com/raylib-extras/rlImGui/blob/main/LICENSE
+
+License notice for Open Sans
+----------------------------
+
+Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)
+Licensed under SIL OPEN FONT LICENSE Version 1.1
+
+Available at
+https://github.com/googlefonts/opensans/blob/main/OFL.txt
