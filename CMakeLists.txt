@@ -33,6 +33,7 @@ add_library(CrocobyGraph
   ./src/internal/painter.cpp
   ./src/internal/physics.cpp
   ./src/internal/calc_impls.cpp
+  ./src/internal/resources.cpp
 )
 
 target_include_directories(CrocobyGraph PUBLIC ./include)

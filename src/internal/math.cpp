@@ -7,7 +7,7 @@
 
 namespace CrocobyGraph {
 
-  float ease_cubic_in_out(float t, float b, float c, float d) {
+  [[nodiscard]] float ease_cubic_in_out(float t, float b, float c, float d) noexcept {
     float inv_div = 1.0f / d;
     float t_p = t * 2.0f * inv_div - 2.0f;
 
@@ -16,7 +16,7 @@ namespace CrocobyGraph {
       0.5f * c * (t_p * t_p * t_p + 2.0f) + b;
   }
 
-  Vector2 calculate_bezier_cubic_dot(Vector2 start, Vector2 end, Vector2 c1, Vector2 c2, float divisions, float index) {
+  Vector2 calculate_bezier_cubic_dot(Vector2 start, Vector2 end, Vector2 c1, Vector2 c2, float divisions, float index) noexcept {
     float step = 1.0f / divisions;
     float t = step * index;
 
@@ -35,7 +35,7 @@ namespace CrocobyGraph {
     };
   }
 
-  Vector2 calculate_bezier_cubic_in_out_dot(Vector2 a, Vector2 b, float divisions, float index) {
+  Vector2 calculate_bezier_cubic_in_out_dot(Vector2 a, Vector2 b, float divisions, float index) noexcept {
     return {
       a.x + (b.x - a.x) / divisions * index,
       ease_cubic_in_out(index, a.y, b.y - a.y, divisions),
@@ -70,11 +70,11 @@ namespace CrocobyGraph {
     return approximately_circle_intersection(spline_segments, circle_radius, circle_center, spline_dot_function, left, spline_segments - 1);
   }
 
-  bool check_point_in_rect(Vector2 point, Vector2 rect_top_left, Vector2 rect_bottom_right) {
+  bool check_point_in_rect(Vector2 point, Vector2 rect_top_left, Vector2 rect_bottom_right) noexcept {
     return rect_top_left.x <= point.x && rect_top_left.y <= point.y && rect_bottom_right.x >= point.x && rect_bottom_right.y >= point.y;
   }
 
-  bool check_rect_collision_line(Vector2 line_start, Vector2 line_end, Vector2 rect_top_left, Vector2 rect_bottom_right) {
+  bool check_rect_collision_line(Vector2 line_start, Vector2 line_end, Vector2 rect_top_left, Vector2 rect_bottom_right) noexcept {
     if (check_point_in_rect(line_start, rect_top_left, rect_bottom_right)) return true;
 
     Vector2 t;
@@ -86,7 +86,7 @@ namespace CrocobyGraph {
     return false;
   }
 
-  bool check_rect_a_in_rect_b(Vector2 rect_a_top_left, Vector2 rect_a_bottom_right, Vector2 rect_b_top_left, Vector2 rect_b_bottom_right) {
+  bool check_rect_a_in_rect_b(Vector2 rect_a_top_left, Vector2 rect_a_bottom_right, Vector2 rect_b_top_left, Vector2 rect_b_bottom_right) noexcept {
     return rect_a_top_left.x <= rect_b_bottom_right.x && rect_a_bottom_right.x >= rect_b_top_left.x && rect_a_top_left.y <= rect_b_bottom_right.y && rect_a_bottom_right.y >= rect_b_top_left.y;
   }
 

@@ -6,13 +6,12 @@
 #include "../interface/entities.hpp"
 #include "../config.hpp"
 #include "resource_counter.hpp"
+#include "resources.hpp"
 #include <string_view>
 #include <vector>
 #include "raylib.h"
 
 namespace CrocobyGraph {
-
-  struct FontResource;
 
   class Painter {
     ResourceCounter<FontResource> open_sans_font {};

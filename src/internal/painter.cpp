@@ -1,33 +1,15 @@
 #include "painter.hpp"
 #include "../interface/color.hpp"
 #include "../interface/entities.hpp"
-#include "../resources/open_sans.hpp"
 #include "math.hpp"
 #include "calc_impls.hpp"
 #include "physics.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <iostream>
 #include "raylib.h"
 
 namespace CrocobyGraph {
-
-  struct FontResource {
-    Font open_sans;
-
-    FontResource() {
-      open_sans = LoadFontFromMemory(".ttf", OpenSansFontData, OpenSansFontSize, 96, nullptr, 0);
-      SetTextureFilter(open_sans.texture, TEXTURE_FILTER_BILINEAR);
-      std::cout << "Open Sans font loaded\n";
-    }
-
-    ~FontResource() {
-      UnloadFont(open_sans);
-      std::cout << "Open Sans font unloaded\n";
-    }
-  };
-
   Painter::Painter() = default;
   Painter::~Painter() = default;
 
@@ -74,11 +56,8 @@ namespace CrocobyGraph {
     ResourceCounter<FontResource> font_resource {};
     const auto& resource = font_resource.get();
 
-    float font_size = 18.0f;
-    float spacing = 0.0f;
-
-    auto dimension = MeasureTextEx(resource.open_sans, text.data(), font_size, spacing);
-    DrawTextEx(resource.open_sans, text.data(), { pos.x - dimension.x * 0.5f, pos.y - dimension.y * 0.5f }, font_size, spacing, color);
+    auto dimension = MeasureTextEx(resource.open_sans, text.data(), LABEL_FONT_SIZE, LABEL_SPACING);
+    DrawTextEx(resource.open_sans, text.data(), { pos.x - dimension.x * 0.5f, pos.y - dimension.y * 0.5f }, LABEL_FONT_SIZE, LABEL_SPACING, color);
   }
 
   void Painter::draw_arrow(Vector2 from, Vector2 to, float radius, Color color, EdgeCurveType curve, float thickness) {

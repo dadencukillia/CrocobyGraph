@@ -17,6 +17,7 @@
 #include <iostream>
 #include <optional>
 #include <string_view>
+#include "../internal/resources.hpp"
 #include "imgui.h"
 #include "raylib.h"
 
@@ -417,6 +418,122 @@ namespace CrocobyGraph {
     }
   }
 
+  inline void EditorFrame::process_selection_node(const WindowInfo& info, GraphECS& ecs, float sel_left, float sel_top, float sel_right, float sel_bottom) {
+    auto& registry = ecs.get_scene().get_registry();
+
+    for (const auto& [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
+      if (check_rect_a_in_rect_b(
+        { pos.x - node.radius, pos.y - node.radius },
+        { pos.x + node.radius, pos.y + node.radius },
+        { sel_left, sel_top },
+        { sel_right, sel_bottom }
+      )) {
+        if (!selection.contains(entity)) {
+          temp_selection.insert(entity);
+        }
+      }
+    }
+  }
+
+  inline void EditorFrame::process_selection_edge(const WindowInfo& info, GraphECS& ecs, float sel_left, float sel_top, float sel_right, float sel_bottom) {
+    auto& registry = ecs.get_scene().get_registry();
+
+    Vector2 corner_top_left_expanded { sel_left, sel_top };
+    Vector2 corner_bottom_right_expanded { sel_right, sel_bottom };
+    if ((sel_right - sel_left) * (sel_bottom - sel_top) < 5.0f) {
+      corner_top_left_expanded = { corner_top_left_expanded.x - 5.0f, corner_top_left_expanded.y - 5.0f };
+      corner_bottom_right_expanded = { corner_bottom_right_expanded.x + 5.0f, corner_bottom_right_expanded.y + 5.0f };
+    }
+
+    for (const auto& [entity, edge] : registry.view<const EdgeEntity>().each()) {
+      auto pos_a = registry.get<const PositionComponent>(edge.node_start);
+
+      if (edge.node_start == edge.node_end) {
+        auto& node = registry.get<const NodeEntity>(edge.node_start);
+
+        auto calc_params = calc_self_loop_params({ pos_a.x, pos_a.y }, node.radius);
+
+        uint8_t parts = 4;
+        for (uint8_t part = 0; part < parts; ++part) {
+          if (approximately_check_bezier_line_in_rect([&pos_a, &calc_params, parts, part](ApproximatelySplineCallbackParams a) {
+            return calculate_bezier_cubic_dot({ pos_a.x, pos_a.y }, { pos_a.x, pos_a.y }, calc_params.control_point1, calc_params.control_point2, a.divisions * static_cast<float>(parts), part * a.divisions + a.index);
+          }, corner_top_left_expanded, corner_bottom_right_expanded)) {
+            selection.insert(entity);
+            break;
+          }
+        }
+      } else {
+        auto pos_b = registry.get<const PositionComponent>(edge.node_end);
+
+        if (!selection.contains(entity)) {
+          bool in_selection { false };
+
+          switch(edge.curve_type) {
+          case EdgeCurveType::Linear:
+            in_selection = check_rect_collision_line(
+              { pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, 
+              corner_top_left_expanded, corner_bottom_right_expanded
+            );
+            break;
+
+          case EdgeCurveType::Ease:
+            in_selection = approximately_check_bezier_line_in_rect([pos_a, pos_b](ApproximatelySplineCallbackParams a) {
+              return calculate_bezier_cubic_in_out_dot({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, a.divisions, a.index);
+            }, corner_top_left_expanded, corner_bottom_right_expanded);
+            break;
+
+          case EdgeCurveType::Step:
+            float mid_x = pos_a.x + (pos_b.x - pos_a.x) / 2.0f;
+            in_selection = (
+               check_rect_collision_line({ pos_a.x, pos_a.y }, { mid_x, pos_a.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
+               check_rect_collision_line({ mid_x, pos_a.y }, { mid_x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
+               check_rect_collision_line({ mid_x, pos_b.y }, { pos_b.x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded)
+            );
+
+            break;
+          }
+
+          if (in_selection) temp_selection.insert(entity);
+        }
+      }
+    }
+  }
+
+  inline void EditorFrame::process_selection_label(const WindowInfo& info, GraphECS& ecs, float sel_left, float sel_top, float sel_right, float sel_bottom) {
+    auto& registry = ecs.get_scene().get_registry();
+    ResourceCounter<FontResource> font_res {};
+    Font font = font_res.get().open_sans;
+
+    for (const auto& [entity, label] : registry.view<const LabelEntity>().each()) {
+      Vector2 pos;
+
+      if (registry.any_of<const PositionComponent>(entity)) {
+        const auto& pos_component = registry.get<const PositionComponent>(entity);
+        pos = { pos_component.x, pos_component.y };
+      } else {
+        const auto& attachment = registry.get<const AttachComponent>(entity);
+        const auto& pos_component = registry.get<const PositionComponent>(attachment.target);
+        pos = {
+          pos_component.x + attachment.offset_x,
+          pos_component.y + attachment.offset_y
+        };
+      }
+
+      auto text_size = MeasureTextEx(font, label.label.data(), LABEL_FONT_SIZE, LABEL_SPACING);
+
+      if (check_rect_a_in_rect_b(
+        { pos.x - text_size.x * 0.5f, pos.y - text_size.y * 0.5f },
+        { pos.x + text_size.x * 0.5f, pos.y + text_size.y * 0.5f },
+        { sel_left, sel_top },
+        { sel_right, sel_bottom }
+      )) {
+        if (!selection.contains(entity)) {
+          temp_selection.insert(entity);
+        }
+      }
+    }
+  }
+
   inline void EditorFrame::process_selection(const WindowInfo& info, GraphECS& ecs, bool current_node, bool current_edge, bool current_label) {
     auto& registry = ecs.get_scene().get_registry();
 
@@ -457,75 +574,9 @@ namespace CrocobyGraph {
       }
       temp_selection.clear();
 
-      if (current_node) {
-        for (const auto& [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
-          if (pos.x + node.radius >= corner_top_left.x && pos.x - node.radius <= corner_bottom_right.x && pos.y + node.radius >= corner_top_left.y && pos.y - node.radius <= corner_bottom_right.y) {
-            if (!selection.contains(entity)) {
-              temp_selection.insert(entity);
-            }
-          }
-        }
-      } else if (current_edge) {
-        auto corner_top_left_expanded = corner_top_left;
-        auto corner_bottom_right_expanded = corner_bottom_right;
-        if ((corner_bottom_right.x - corner_top_left.x) * (corner_bottom_right.y - corner_top_left.y) < 5.0f) {
-          corner_top_left_expanded = { corner_top_left_expanded.x - 5.0f, corner_top_left_expanded.y - 5.0f };
-          corner_bottom_right_expanded = { corner_bottom_right_expanded.x + 5.0f, corner_bottom_right_expanded.y + 5.0f };
-        }
-
-        for (const auto& [entity, edge] : registry.view<const EdgeEntity>().each()) {
-          auto pos_a = registry.get<const PositionComponent>(edge.node_start);
-
-          if (edge.node_start == edge.node_end) {
-            auto& node = registry.get<const NodeEntity>(edge.node_start);
-
-            auto calc_params = calc_self_loop_params({ pos_a.x, pos_a.y }, node.radius);
-
-            uint8_t parts = 4;
-            for (uint8_t part = 0; part < parts; ++part) {
-              if (approximately_check_bezier_line_in_rect([&pos_a, &calc_params, parts, part](ApproximatelySplineCallbackParams a) {
-                return calculate_bezier_cubic_dot({ pos_a.x, pos_a.y }, { pos_a.x, pos_a.y }, calc_params.control_point1, calc_params.control_point2, a.divisions * static_cast<float>(parts), part * a.divisions + a.index);
-              }, corner_top_left_expanded, corner_bottom_right_expanded)) {
-                selection.insert(entity);
-                break;
-              }
-            }
-          } else {
-            auto pos_b = registry.get<const PositionComponent>(edge.node_end);
-
-            if (!selection.contains(entity)) {
-              bool in_selection { false };
-
-              switch(edge.curve_type) {
-              case EdgeCurveType::Linear:
-                in_selection = check_rect_collision_line(
-                  { pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, 
-                  corner_top_left_expanded, corner_bottom_right_expanded
-                );
-                break;
-
-              case EdgeCurveType::Ease:
-                in_selection = approximately_check_bezier_line_in_rect([pos_a, pos_b](ApproximatelySplineCallbackParams a) {
-                  return calculate_bezier_cubic_in_out_dot({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, a.divisions, a.index);
-                }, corner_top_left_expanded, corner_bottom_right_expanded);
-                break;
-
-              case EdgeCurveType::Step:
-                float mid_x = pos_a.x + (pos_b.x - pos_a.x) / 2.0f;
-                in_selection = (
-                   check_rect_collision_line({ pos_a.x, pos_a.y }, { mid_x, pos_a.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
-                   check_rect_collision_line({ mid_x, pos_a.y }, { mid_x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded) ||
-                   check_rect_collision_line({ mid_x, pos_b.y }, { pos_b.x, pos_b.y }, corner_top_left_expanded, corner_bottom_right_expanded)
-                );
-
-                break;
-              }
-
-              if (in_selection) temp_selection.insert(entity);
-            }
-          }
-        }
-      }
+      if (current_node) process_selection_node(info, ecs, corner_top_left.x, corner_top_left.y, corner_bottom_right.x, corner_bottom_right.y);
+      else if (current_edge) process_selection_edge(info, ecs, corner_top_left.x, corner_top_left.y, corner_bottom_right.x, corner_bottom_right.y);
+      else if (current_label) process_selection_label(info, ecs, corner_top_left.x, corner_top_left.y, corner_bottom_right.x, corner_bottom_right.y);
     } else {
       for (auto& temp_select : temp_selection) {
         selection.insert(temp_select);
@@ -544,6 +595,8 @@ namespace CrocobyGraph {
     BeginMode2D(get_camera_2d(info));
 
     Color selection_color = { 0, 0, 180, 100 };
+    ResourceCounter<FontResource> font_res {};
+    Font font = font_res.get().open_sans;
 
     for (auto* selection_list : { &selection, &temp_selection }) {
       for (auto selected : *selection_list) {
@@ -582,6 +635,29 @@ namespace CrocobyGraph {
               thickness
             );
           }
+        } else if (current_label) {
+          const auto& label = registry.get<const LabelEntity>(selected);
+
+          Vector2 pos;
+
+          if (registry.any_of<const PositionComponent>(selected)) {
+            const auto& pos_component = registry.get<const PositionComponent>(selected);
+            pos = { pos_component.x, pos_component.y };
+          } else {
+            const auto& attachment = registry.get<const AttachComponent>(selected);
+            const auto& pos_component = registry.get<const PositionComponent>(attachment.target);
+            pos = {
+              pos_component.x + attachment.offset_x,
+              pos_component.y + attachment.offset_y
+            };
+          }
+
+          auto text_size = MeasureTextEx(font, label.label.data(), LABEL_FONT_SIZE, LABEL_SPACING);
+          DrawRectangleV(
+            { pos.x - text_size.x * 0.5f, pos.y - text_size.y * 0.5f },
+            text_size,
+            selection_color
+          );
         }
       }
     }
