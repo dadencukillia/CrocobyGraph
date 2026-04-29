@@ -4,6 +4,7 @@
 #include "../internal/math.hpp"
 #include "../internal/calc_impls.hpp"
 #include "../internal/resource_counter.hpp"
+#include "../internal/labels.hpp"
 #include "../resources/editor_icons.hpp"
 #include "../config.hpp"
 #include "components.hpp"
@@ -505,25 +506,12 @@ namespace CrocobyGraph {
     Font font = font_res.get().open_sans;
 
     for (const auto& [entity, label] : registry.view<const LabelEntity>().each()) {
-      Vector2 pos;
-
-      if (registry.any_of<const PositionComponent>(entity)) {
-        const auto& pos_component = registry.get<const PositionComponent>(entity);
-        pos = { pos_component.x, pos_component.y };
-      } else {
-        const auto& attachment = registry.get<const AttachComponent>(entity);
-        const auto& pos_component = registry.get<const PositionComponent>(attachment.target);
-        pos = {
-          pos_component.x + attachment.offset_x,
-          pos_component.y + attachment.offset_y
-        };
-      }
-
-      auto text_size = MeasureTextEx(font, label.label.data(), LABEL_FONT_SIZE, LABEL_SPACING);
+      const auto label_position = get_label_position(registry, entity);
+      const auto label_size = get_label_size(label);
 
       if (check_rect_a_in_rect_b(
-        { pos.x - text_size.x * 0.5f, pos.y - text_size.y * 0.5f },
-        { pos.x + text_size.x * 0.5f, pos.y + text_size.y * 0.5f },
+        { label_position.x - label_size.x * 0.5f, label_position.y - label_size.y * 0.5f },
+        { label_position.x + label_size.x * 0.5f, label_position.y + label_size.y * 0.5f },
         { sel_left, sel_top },
         { sel_right, sel_bottom }
       )) {
@@ -636,26 +624,12 @@ namespace CrocobyGraph {
             );
           }
         } else if (current_label) {
-          const auto& label = registry.get<const LabelEntity>(selected);
+          const auto label_position = get_label_position(registry, selected);
+          const auto label_size = get_label_size(registry.get<const LabelEntity>(selected));
 
-          Vector2 pos;
-
-          if (registry.any_of<const PositionComponent>(selected)) {
-            const auto& pos_component = registry.get<const PositionComponent>(selected);
-            pos = { pos_component.x, pos_component.y };
-          } else {
-            const auto& attachment = registry.get<const AttachComponent>(selected);
-            const auto& pos_component = registry.get<const PositionComponent>(attachment.target);
-            pos = {
-              pos_component.x + attachment.offset_x,
-              pos_component.y + attachment.offset_y
-            };
-          }
-
-          auto text_size = MeasureTextEx(font, label.label.data(), LABEL_FONT_SIZE, LABEL_SPACING);
           DrawRectangleV(
-            { pos.x - text_size.x * 0.5f, pos.y - text_size.y * 0.5f },
-            text_size,
+            { label_position.x - label_size.x * 0.5f, label_position.y - label_size.y * 0.5f },
+            label_size,
             selection_color
           );
         }
