@@ -15,6 +15,7 @@
 #include "physics_system.hpp"
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -194,7 +195,11 @@ namespace CrocobyGraph {
       };
 
       char buf[100];
-      std::strncpy(buf, label.label.data(), sizeof(buf));
+      size_t copy_size = std::min(label.label.size(), 99uz);
+      if (!label.label.empty()) {
+        memcpy(buf, label.label.data(), copy_size);
+      }
+      buf[copy_size] = '\0';
       ImGui::InputText("Text", buf, sizeof(buf));
 
       if (strcmp(label.label.c_str(), buf) != 0) {
