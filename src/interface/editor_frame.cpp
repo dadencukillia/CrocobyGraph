@@ -10,6 +10,7 @@
 #include "components.hpp"
 #include "ecs.hpp"
 #include "entities.hpp"
+#include "entt/entity/entity.hpp"
 #include "entt/entt.hpp"
 #include "physics_system.hpp"
 #include <algorithm>
@@ -69,16 +70,6 @@ namespace CrocobyGraph {
   }
   
   void EditorFrame::load(GraphECS& ecs) {}
-
-  inline std::optional<entt::entity> get_node_connection(const entt::registry& registry, const entt::entity& node_a, const entt::entity& node_b) {
-    for (const auto& [entity, edge] : registry.view<const EdgeEntity>().each()) {
-      if ((edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a)) {
-        return entity;
-      }
-    }
-
-    return std::nullopt;
-  }
 
   bool draw_toggle_icon_button(const char* str_id, unsigned int tex_id, ImVec2 size, bool on) {
     if (on) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
@@ -441,18 +432,18 @@ namespace CrocobyGraph {
 
       ImGui::SliderFloat("Radius", &node.radius, 5.0f, 100.0f);
 
-      auto self_loop = get_node_connection(registry, *selection.begin(), *selection.begin());
-      if (self_loop.has_value()) {
-        if (ImGui::Button("Remove self-loop")) {
-          registry.destroy(self_loop.value());
-        }
-      } else {
+      auto self_loop = ecs.get_scene().edge_between(*selection.begin(), *selection.begin());
+      if (self_loop == entt::null) {
         if (ImGui::Button("Add self-loop")) {
           auto entity = registry.create();
           registry.emplace<EdgeEntity>(entity, EdgeEntity {
             .node_start = *selection.begin(),
             .node_end = *selection.begin(),
           });
+        }
+      } else {
+        if (ImGui::Button("Remove self-loop")) {
+          registry.destroy(self_loop);
         }
       }
 
@@ -468,23 +459,23 @@ namespace CrocobyGraph {
       }
     } else if (selection.size() == 2) {
       ImGui::SameLine();
-      auto edge_connection = get_node_connection(registry, *selection.begin(), *std::next(selection.begin()));
-      if (edge_connection.has_value()) {
-        if (ImGui::Button("Disconnect")) {
-          registry.destroy(edge_connection.value());
-        }
-        if (ImGui::Button("Select edge between")) {
-          editor_mode = EditMode::Edge;
-          selection.clear();
-          selection.insert(edge_connection.value());
-        }
-      } else {
+      auto edge_connection = ecs.get_scene().edge_between(*selection.begin(), *std::next(selection.begin()));
+      if (edge_connection == entt::null) {
         if (ImGui::Button("Connect")) {
           auto entity = registry.create();
           registry.emplace<EdgeEntity>(entity, EdgeEntity {
             .node_start = *selection.begin(),
             .node_end = *std::next(selection.begin()),
           });
+        }
+      } else {
+        if (ImGui::Button("Disconnect")) {
+          registry.destroy(edge_connection);
+        }
+        if (ImGui::Button("Select edge between")) {
+          editor_mode = EditMode::Edge;
+          selection.clear();
+          selection.insert(edge_connection);
         }
       }
     }

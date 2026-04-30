@@ -4,11 +4,12 @@
 #include "color.hpp"
 #include "../config.hpp"
 #include "entt/entity/fwd.hpp"
+#include <cstdint>
 #include <string>
 
 namespace CrocobyGraph {
 
-  enum class EdgeCurveType {
+  enum class EdgeCurveType : uint8_t {
     Linear,
     Step,
     Ease

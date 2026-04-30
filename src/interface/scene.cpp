@@ -398,6 +398,16 @@ namespace CrocobyGraph {
     return node_add_label(entity, std::move(text));
   }
 
+  entt::entity Scene::edge_between(entt::entity node_a, entt::entity node_b) const {
+    for (const auto& [entity, edge] : registry->view<const EdgeEntity>().each()) {
+      if ((edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a)) {
+        return entity;
+      }
+    }
+
+    return entt::null;
+  }
+
   bool Scene::is_node(entt::entity entity) const {
     return registry->any_of<NodeEntity>(entity);
   }

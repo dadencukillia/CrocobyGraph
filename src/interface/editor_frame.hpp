@@ -4,11 +4,12 @@
 #include "ecs.hpp"
 #include "entt/entity/fwd.hpp"
 #include "window_system.hpp"
+#include <cstdint>
 #include <unordered_set>
 
 namespace CrocobyGraph {
 
-  enum class EditMode {
+  enum class EditMode : uint8_t {
     View,
     Node,
     Edge,

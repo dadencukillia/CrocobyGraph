@@ -54,6 +54,7 @@ namespace CrocobyGraph {
     [[nodiscard]] EdgeCurveType edge_curve(entt::entity edge) const;
     void set_edge_curve(entt::entity edge, EdgeCurveType curve_type);
     entt::entity edge_add_label(entt::entity edge, std::string&& text, Color color = DEFAULT_LABEL_COLOR);
+    [[nodiscard]] entt::entity edge_between(entt::entity node_a, entt::entity node_b) const;
     [[nodiscard]] bool is_node(entt::entity entity) const;
     [[nodiscard]] bool is_edge(entt::entity entity) const;
     [[nodiscard]] bool is_any_label(entt::entity entity) const;

@@ -29,9 +29,10 @@ An interactive graph visualization library for C++ with real-time rendering and 
 
     ```bash
     cd external
-    git submodule add https://github.com/dadencukillia/CrocobyGraph.git --depth=1
-    git submodule update --init --recursive
-    cd ..
+    git submodule add --depth=1 https://github.com/dadencukillia/CrocobyGraph.git
+    cd CrocobyGraph
+    git submodule update --init --recursive --progress --depth=1
+    cd ../..
     ```
 1. Add into `CMakeLists.txt` this line:
 
