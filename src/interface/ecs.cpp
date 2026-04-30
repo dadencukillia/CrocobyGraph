@@ -86,6 +86,8 @@ namespace CrocobyGraph {
       }
     }
 
+    thread_pool.flush();
+
     if (!remove_list.empty()) {
       std::sort(remove_list.begin(), remove_list.end());
       size_t last_removed_index = remove_list.back() + 1; // anti duplication
@@ -144,6 +146,7 @@ namespace CrocobyGraph {
     }
   }
 
+  ThreadPool& GraphECS::get_threadpool() { return thread_pool; }
   Scene& GraphECS::get_scene() { return *scene; }
 
 }

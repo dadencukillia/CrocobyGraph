@@ -138,18 +138,20 @@ namespace CrocobyGraph {
 
       const entt::entity* velocity_data { storage.data() };
       const size_t chunk_size { ((velocity_count / threads + chunk_multiple - 1) / chunk_multiple) * chunk_multiple };
-      std::thread thread_handlers[threads];
+      size_t thread_handlers[threads];
+
+      ecs->get_threadpool().set_minimum_threads(threads);
 
       for (uint8_t thread = 0; thread < threads; ++thread) {
-        thread_handlers[thread] = std::thread(
-          thread_worker,
-          &velocity_data[chunk_size * thread],
-          std::min(chunk_size, velocity_count - chunk_size * thread)
-        );
+        const entt::entity* start = &velocity_data[chunk_size * thread];
+        const size_t len = std::min(chunk_size, velocity_count - chunk_size * thread);
+        thread_handlers[thread] = ecs->get_threadpool().enqueue_task([thread_worker, start, len]() {
+          thread_worker(start, len);
+        });
       }
 
       for (uint8_t thread = 0; thread < threads; ++thread) {
-        thread_handlers[thread].join();
+        ecs->get_threadpool().wait_for_task(thread_handlers[thread]);
       }
     } else {
       const entt::entity* velocity_data { storage.data() };

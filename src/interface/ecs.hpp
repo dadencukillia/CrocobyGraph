@@ -3,6 +3,7 @@
 
 #include "scene.hpp"
 #include "systems.hpp"
+#include "thread_pool.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <memory>
@@ -17,6 +18,7 @@ namespace CrocobyGraph {
     std::vector<std::unique_ptr<ISystem>> systems;
     std::vector<size_t> remove_list;
     Scene* scene { new Scene() };
+    ThreadPool thread_pool {};
     bool update_busy { false };
     bool loop_busy { false };
 
@@ -38,12 +40,14 @@ namespace CrocobyGraph {
     void update(double dt);
     void run_loop();
 
+
     template <typename T, typename... Args>
     void add_system(Args&&... args) {
       auto new_sys = std::make_unique<T>(std::forward<Args>(args)...);
       add_system(new_sys);
     }
 
+    ThreadPool& get_threadpool();
     Scene& get_scene();
   };
 
