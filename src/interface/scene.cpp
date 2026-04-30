@@ -255,7 +255,8 @@ namespace CrocobyGraph {
   }
 
   std::vector<entt::entity> Scene::nodes() const {
-    return registry->view<const NodeEntity>()
+    return registry->view<const NodeEntity>().each()
+      | std::views::keys
       | std::ranges::to<std::vector<entt::entity>>();
   }
 
@@ -274,21 +275,21 @@ namespace CrocobyGraph {
   }
 
   std::vector<entt::entity> Scene::node_edges(entt::entity entity) const {
-    return registry->view<const EdgeEntity>()
-      | std::views::filter([&](const entt::entity edge_entity) { 
-        const auto& edge = registry->get<const EdgeEntity>(edge_entity);
-        return edge.node_start == entity || edge.node_end == entity;
-      })
-      | std::ranges::to<std::vector<entt::entity>>();
+    std::vector<entt::entity> result;
+    registry->view<const EdgeEntity>().each([&](const entt::entity edge_entity) {
+      result.push_back(edge_entity);
+    });
+
+    return result;
   }
 
   std::vector<entt::entity> Scene::node_labels(entt::entity entity) const {
-    return registry->view<const LabelEntity, const AttachComponent>()
-      | std::views::filter([&](const entt::entity label_entity) {
-        const auto& attach = registry->get<const AttachComponent>(label_entity);
-        return attach.target == entity;
-      })
-      | std::ranges::to<std::vector<entt::entity>>();
+    std::vector<entt::entity> result;
+    for (const auto& [label_entity, label, attach] : registry->view<const LabelEntity, const AttachComponent>().each()) {
+      if (attach.target == entity) result.push_back(label_entity);
+    }
+
+    return result;
   }
 
   entt::entity Scene::node_set_label(entt::entity entity, std::string&& text, Color color) {
