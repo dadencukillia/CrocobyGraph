@@ -6,8 +6,13 @@
 #include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
 #include "math.hpp"
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <iostream>
+#include <new>
+#include <thread>
 #include <vector>
 #include "raylib.h"
 
@@ -79,37 +84,76 @@ namespace CrocobyGraph {
       a_vel.y -= delta * TARGET_TPS * force_apply.y * vel_denominator;
     }
 
-    for (const auto& [entity, node, pos, repulsion, velocity] : registry.view<const NodeEntity, const PositionComponent, const RepulsionComponent, VelocityComponent>().each()) {
-      float mass = node.radius * node.radius;
-      Vector2 forces = { 0.0f, 0.0f };
+    constexpr uint8_t threads { 3 };
+    constexpr size_t cache_line_size { std::hardware_destructive_interference_size };
+    constexpr size_t velocity_type_size { sizeof(VelocityComponent) };
+    constexpr size_t chunk_multiple { std::max(1uz, cache_line_size / velocity_type_size) };
 
-      // Coulomb's law
-      for (const auto& [another_entity, another_repulsion, another_pos] : registry.view<const RepulsionComponent, const PositionComponent>().each()) {
-        if (entity == another_entity) continue;
+    auto& storage { registry.storage<VelocityComponent>() };
+    const size_t velocity_count { storage.size() };
 
-        Vector2 vector = { pos.x - another_pos.x, pos.y - another_pos.y };
-        float distance_square = vector.x * vector.x + vector.y * vector.y + 0.1f;
-        float distance = std::sqrt(distance_square);
-        float force = PHYSICS_REPULSION_CONSTANT * another_repulsion.charge * repulsion.charge / (distance_square * distance);
-        forces.x += vector.x * force;
-        forces.y += vector.y * force;
+    const auto thread_worker = [&](const entt::entity* start, const size_t len) {
+      for (size_t i = 0; i < len; ++i) {
+        const auto entity = start[i];
+        const auto& [node, pos, repulsion, velocity] = registry.get<const NodeEntity, const PositionComponent, const RepulsionComponent, VelocityComponent>(entity);
+
+        float mass = node.radius * node.radius;
+        Vector2 forces = { 0.0f, 0.0f };
+
+        // Coulomb's law
+        for (const auto& [another_entity, another_repulsion, another_pos] : registry.view<const RepulsionComponent, const PositionComponent>().each()) {
+          if (entity == another_entity) continue;
+
+          Vector2 vector = { pos.x - another_pos.x, pos.y - another_pos.y };
+          float distance_square = vector.x * vector.x + vector.y * vector.y + 0.1f;
+          float distance = std::sqrt(distance_square);
+          float force = PHYSICS_REPULSION_CONSTANT * another_repulsion.charge * repulsion.charge / (distance_square * distance);
+          forces.x += vector.x * force;
+          forces.y += vector.y * force;
+        }
+
+        // Gravity force
+        float center_distance = std::sqrt(pos.x * pos.x + pos.y * pos.y) + 0.1f;
+        float inv_center_distance = 1.0f / center_distance;
+        Vector2 gravity_direction = { -pos.x * inv_center_distance, -pos.y * inv_center_distance };
+        forces.x += gravity_direction.x * PHYSICS_GRAVITY_CONSTANT * mass;
+        forces.y += gravity_direction.y * PHYSICS_GRAVITY_CONSTANT * mass;
+
+        // Velocity calculations
+        float inv_mass = 1.0f / mass;
+        Vector2 acceleration = { forces.x * inv_mass, forces.y * inv_mass };
+        velocity.x += acceleration.x * delta * TARGET_TPS;
+        velocity.y += acceleration.y * delta * TARGET_TPS;
+
+        velocity.x -= velocity.x * PHYSICS_FRICTION_CONSTANT * delta;
+        velocity.y -= velocity.y * PHYSICS_FRICTION_CONSTANT * delta;
+      }
+    };
+
+    if (velocity_count >= 128) {
+      // Ensures that VelocityComponents will be located in the memory by the id order
+      registry.sort<VelocityComponent>([](const entt::entity lhs, const entt::entity rhs) {
+        return lhs < rhs;
+      });
+
+      const entt::entity* velocity_data { storage.data() };
+      const size_t chunk_size { ((velocity_count / threads + chunk_multiple - 1) / chunk_multiple) * chunk_multiple };
+      std::thread thread_handlers[threads];
+
+      for (uint8_t thread = 0; thread < threads; ++thread) {
+        thread_handlers[thread] = std::thread(
+          thread_worker,
+          &velocity_data[chunk_size * thread],
+          std::min(chunk_size, velocity_count - chunk_size * thread)
+        );
       }
 
-      // Gravity force
-      float center_distance = std::sqrt(pos.x * pos.x + pos.y * pos.y) + 0.1f;
-      float inv_center_distance = 1.0f / center_distance;
-      Vector2 gravity_direction = { -pos.x * inv_center_distance, -pos.y * inv_center_distance };
-      forces.x += gravity_direction.x * PHYSICS_GRAVITY_CONSTANT * mass;
-      forces.y += gravity_direction.y * PHYSICS_GRAVITY_CONSTANT * mass;
-
-      // Velocity calculations
-      float inv_mass = 1.0f / mass;
-      Vector2 acceleration = { forces.x * inv_mass, forces.y * inv_mass };
-      velocity.x += acceleration.x * delta * TARGET_TPS;
-      velocity.y += acceleration.y * delta * TARGET_TPS;
-
-      velocity.x -= velocity.x * PHYSICS_FRICTION_CONSTANT * delta;
-      velocity.y -= velocity.y * PHYSICS_FRICTION_CONSTANT * delta;
+      for (uint8_t thread = 0; thread < threads; ++thread) {
+        thread_handlers[thread].join();
+      }
+    } else {
+      const entt::entity* velocity_data { storage.data() };
+      thread_worker(velocity_data, velocity_count);
     }
   }
 
