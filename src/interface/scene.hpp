@@ -8,7 +8,6 @@
 #include "vector.hpp"
 #include <ranges>
 #include <string_view>
-#include <unordered_set>
 #include <vector>
 
 namespace CrocobyGraph {
@@ -41,10 +40,10 @@ namespace CrocobyGraph {
     [[nodiscard]] Vector label_offset(entt::entity label) const;
     void set_label_offset(entt::entity label, Vector offset);
 
-    [[nodiscard]] std::unordered_set<entt::entity> nodes() const;
-    [[nodiscard]] std::unordered_set<entt::entity> node_neighbors(entt::entity node) const;
-    [[nodiscard]] std::unordered_set<entt::entity> node_edges(entt::entity node) const;
-    [[nodiscard]] std::unordered_set<entt::entity> node_labels(entt::entity node) const;
+    [[nodiscard]] std::vector<entt::entity> nodes() const;
+    [[nodiscard]] std::vector<entt::entity> node_neighbors(entt::entity node) const;
+    [[nodiscard]] std::vector<entt::entity> node_edges(entt::entity node) const;
+    [[nodiscard]] std::vector<entt::entity> node_labels(entt::entity node) const;
     entt::entity node_set_label(entt::entity node, std::string&& text, Color color = DEFAULT_LABEL_COLOR);
     [[nodiscard]] bool nodes_connected(entt::entity node_a, entt::entity node_b) const;
     entt::entity nodes_connect(entt::entity node_a, entt::entity node_b);
@@ -54,7 +53,7 @@ namespace CrocobyGraph {
     void node_radius(entt::entity node, float radius);
 
     [[nodiscard]] std::pair<entt::entity, entt::entity> edge_nodes(entt::entity edge) const;
-    [[nodiscard]] std::unordered_set<entt::entity> edge_labels(entt::entity edge) const;
+    [[nodiscard]] std::vector<entt::entity> edge_labels(entt::entity edge) const;
     entt::entity edge_set_label(entt::entity edge, std::string&& text, Color color = DEFAULT_LABEL_COLOR);
     [[nodiscard]] std::pair<bool, bool> edge_arrows(entt::entity edge) const;
     void set_edge_arrows(entt::entity edge, std::pair<bool, bool> arrows);

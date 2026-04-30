@@ -11,7 +11,6 @@
 #include <cstddef>
 #include <ranges>
 #include <stdexcept>
-#include <unordered_set>
 #include <variant>
 
 namespace CrocobyGraph {
@@ -255,41 +254,41 @@ namespace CrocobyGraph {
     attach.offset_y = offset.y;
   }
 
-  std::unordered_set<entt::entity> Scene::nodes() const {
+  std::vector<entt::entity> Scene::nodes() const {
     return registry->view<const NodeEntity>()
-      | std::ranges::to<std::unordered_set<entt::entity>>();
+      | std::ranges::to<std::vector<entt::entity>>();
   }
 
-  std::unordered_set<entt::entity> Scene::node_neighbors(entt::entity entity) const {
+  std::vector<entt::entity> Scene::node_neighbors(entt::entity entity) const {
     assert(is_node(entity) && "The specified entity must be a node");
-    std::unordered_set<entt::entity> result;
+    std::vector<entt::entity> result;
     for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
       if (edge.node_start == entity) {
-        result.insert(edge.node_end);
+        result.push_back(edge.node_end);
       } else if (edge.node_end == entity) {
-        result.insert(edge.node_start);
+        result.push_back(edge.node_start);
       }
     }
 
     return result;
   }
 
-  std::unordered_set<entt::entity> Scene::node_edges(entt::entity entity) const {
+  std::vector<entt::entity> Scene::node_edges(entt::entity entity) const {
     return registry->view<const EdgeEntity>()
       | std::views::filter([&](const entt::entity edge_entity) { 
         const auto& edge = registry->get<const EdgeEntity>(edge_entity);
         return edge.node_start == entity || edge.node_end == entity;
       })
-      | std::ranges::to<std::unordered_set<entt::entity>>();
+      | std::ranges::to<std::vector<entt::entity>>();
   }
 
-  std::unordered_set<entt::entity> Scene::node_labels(entt::entity entity) const {
+  std::vector<entt::entity> Scene::node_labels(entt::entity entity) const {
     return registry->view<const LabelEntity, const AttachComponent>()
       | std::views::filter([&](const entt::entity label_entity) {
         const auto& attach = registry->get<const AttachComponent>(label_entity);
         return attach.target == entity;
       })
-      | std::ranges::to<std::unordered_set<entt::entity>>();
+      | std::ranges::to<std::vector<entt::entity>>();
   }
 
   entt::entity Scene::node_set_label(entt::entity entity, std::string&& text, Color color) {
@@ -372,7 +371,7 @@ namespace CrocobyGraph {
     return { edge.node_start, edge.node_end };
   }
 
-  std::unordered_set<entt::entity> Scene::edge_labels(entt::entity entity) const {
+  std::vector<entt::entity> Scene::edge_labels(entt::entity entity) const {
     return node_labels(entity);
   }
 
