@@ -1,6 +1,7 @@
 #ifndef _CGRAPH_INTERFACE_VECTOR_HPP_
 #define _CGRAPH_INTERFACE_VECTOR_HPP_
 
+#include "components.hpp"
 #include <cmath>
 
 namespace CrocobyGraph {
@@ -26,6 +27,10 @@ namespace CrocobyGraph {
       y { another.y } {}
 
     constexpr Vector& operator=(const Vector& another) noexcept = default;
+
+    constexpr operator PositionComponent() noexcept {
+      return { x, y };
+    }
 
     [[nodiscard]] constexpr float angle() const {
       return std::atan2(y, x);

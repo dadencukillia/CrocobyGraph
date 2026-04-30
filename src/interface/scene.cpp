@@ -6,8 +6,10 @@
 #include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <ranges>
 #include <stdexcept>
 #include <unordered_set>
 #include <variant>
@@ -253,6 +255,11 @@ namespace CrocobyGraph {
     attach.offset_y = offset.y;
   }
 
+  std::unordered_set<entt::entity> Scene::nodes() const {
+    return registry->view<const NodeEntity>()
+      | std::ranges::to<std::unordered_set<entt::entity>>();
+  }
+
   std::unordered_set<entt::entity> Scene::node_neighbors(entt::entity entity) const {
     assert(is_node(entity) && "The specified entity must be a node");
     std::unordered_set<entt::entity> result;
@@ -268,26 +275,21 @@ namespace CrocobyGraph {
   }
 
   std::unordered_set<entt::entity> Scene::node_edges(entt::entity entity) const {
-    assert(is_node(entity) && "The specified entity must be a node");
-    std::unordered_set<entt::entity> result;
-    for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
-      if (edge.node_start == entity || edge.node_end == entity) {
-        result.insert(edge_entity);
-      }
-    }
-
-    return result;
+    return registry->view<const EdgeEntity>()
+      | std::views::filter([&](const entt::entity edge_entity) { 
+        const auto& edge = registry->get<const EdgeEntity>(edge_entity);
+        return edge.node_start == entity || edge.node_end == entity;
+      })
+      | std::ranges::to<std::unordered_set<entt::entity>>();
   }
 
   std::unordered_set<entt::entity> Scene::node_labels(entt::entity entity) const {
-    std::unordered_set<entt::entity> result;
-    for (const auto& [label_entity, label, attach] : registry->view<const LabelEntity, const AttachComponent>().each()) {
-      if (attach.target == entity) {
-        result.insert(label_entity);
-      }
-    }
-
-    return result;
+    return registry->view<const LabelEntity, const AttachComponent>()
+      | std::views::filter([&](const entt::entity label_entity) {
+        const auto& attach = registry->get<const AttachComponent>(label_entity);
+        return attach.target == entity;
+      })
+      | std::ranges::to<std::unordered_set<entt::entity>>();
   }
 
   entt::entity Scene::node_set_label(entt::entity entity, std::string&& text, Color color) {
@@ -317,13 +319,10 @@ namespace CrocobyGraph {
   }
 
   bool Scene::nodes_connected(entt::entity node_a, entt::entity node_b) const {
-    for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
-      if ((edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a)) {
-        return true;
-      }
-    }
-
-    return false;
+    return std::ranges::any_of(registry->view<const EdgeEntity>(), [&](const entt::entity edge_entity) {
+      const auto& edge = registry->get<const EdgeEntity>(edge_entity);
+      return (edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a);
+    });
   }
 
   entt::entity Scene::nodes_connect(entt::entity node_a, entt::entity node_b) {
@@ -355,6 +354,16 @@ namespace CrocobyGraph {
     registry->emplace<AttachComponent>(label, entity, 0.0f, 0.0f);
 
     return label;
+  }
+
+  float Scene::node_radius(entt::entity entity) const {
+    assert(is_node(entity) && "The specified entity must be a node");
+    return registry->get<const NodeEntity>(entity).radius;
+  }
+
+  void Scene::node_radius(entt::entity entity, float radius) {
+    assert(is_node(entity) && "The specified entity must be a node");
+    registry->get<NodeEntity>(entity).radius = radius;
   }
 
   std::pair<entt::entity, entt::entity> Scene::edge_nodes(entt::entity entity) const {
@@ -406,6 +415,25 @@ namespace CrocobyGraph {
     }
 
     return entt::null;
+  }
+
+  bool Scene::is_self_loop(entt::entity entity) const {
+    assert(is_edge(entity) && "The specified entity must be an edge");
+    const auto& edge = registry->get<const EdgeEntity>(entity);
+    return edge.node_start == edge.node_end;
+  }
+
+  bool Scene::edge_points_to(entt::entity edge, entt::entity node) const {
+    assert(is_edge(edge) && "The first specified entity must be an edge");
+    assert(is_node(node) && "The second specified entity must be a node");
+    const auto& edge_entity = registry->get<const EdgeEntity>(edge);
+    return edge_entity.arrow_on_start && edge_entity.node_start == node || edge_entity.arrow_on_end && edge_entity.node_end == node;
+  }
+
+  bool Scene::is_directed_edge(entt::entity entity) const {
+    assert(is_edge(entity) && "The specified entity must be an edge");
+    const auto& edge = registry->get<const EdgeEntity>(entity);
+    return edge.arrow_on_start || edge.arrow_on_end;
   }
 
   bool Scene::is_node(entt::entity entity) const {

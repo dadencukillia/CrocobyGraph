@@ -6,6 +6,7 @@
 #include "entities.hpp"
 #include "entt/entity/fwd.hpp"
 #include "vector.hpp"
+#include <ranges>
 #include <string_view>
 #include <unordered_set>
 #include <vector>
@@ -34,10 +35,13 @@ namespace CrocobyGraph {
     void set_pos(entt::entity entity, Vector pos);
     [[nodiscard]] Color color(entt::entity any_entity) const;
     void set_color(entt::entity any_entity, Color color);
+
     [[nodiscard]] std::string_view label_text(entt::entity label) const;
     void set_label_text(entt::entity label, std::string&& text);
     [[nodiscard]] Vector label_offset(entt::entity label) const;
     void set_label_offset(entt::entity label, Vector offset);
+
+    [[nodiscard]] std::unordered_set<entt::entity> nodes() const;
     [[nodiscard]] std::unordered_set<entt::entity> node_neighbors(entt::entity node) const;
     [[nodiscard]] std::unordered_set<entt::entity> node_edges(entt::entity node) const;
     [[nodiscard]] std::unordered_set<entt::entity> node_labels(entt::entity node) const;
@@ -46,6 +50,9 @@ namespace CrocobyGraph {
     entt::entity nodes_connect(entt::entity node_a, entt::entity node_b);
     void nodes_disconnect(entt::entity node_a, entt::entity node_b);
     entt::entity node_add_label(entt::entity node, std::string&& text, Color color = DEFAULT_LABEL_COLOR);
+    [[nodiscard]] float node_radius(entt::entity node) const;
+    void node_radius(entt::entity node, float radius);
+
     [[nodiscard]] std::pair<entt::entity, entt::entity> edge_nodes(entt::entity edge) const;
     [[nodiscard]] std::unordered_set<entt::entity> edge_labels(entt::entity edge) const;
     entt::entity edge_set_label(entt::entity edge, std::string&& text, Color color = DEFAULT_LABEL_COLOR);
@@ -55,6 +62,10 @@ namespace CrocobyGraph {
     void set_edge_curve(entt::entity edge, EdgeCurveType curve_type);
     entt::entity edge_add_label(entt::entity edge, std::string&& text, Color color = DEFAULT_LABEL_COLOR);
     [[nodiscard]] entt::entity edge_between(entt::entity node_a, entt::entity node_b) const;
+    [[nodiscard]] bool is_self_loop(entt::entity edge) const;
+    [[nodiscard]] bool edge_points_to(entt::entity edge, entt::entity node) const;
+    [[nodiscard]] bool is_directed_edge(entt::entity edge) const;
+
     [[nodiscard]] bool is_node(entt::entity entity) const;
     [[nodiscard]] bool is_edge(entt::entity entity) const;
     [[nodiscard]] bool is_any_label(entt::entity entity) const;
