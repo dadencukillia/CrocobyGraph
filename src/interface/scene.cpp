@@ -6,10 +6,8 @@
 #include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
-#include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <ranges>
 #include <stdexcept>
 #include <variant>
 
@@ -255,9 +253,12 @@ namespace CrocobyGraph {
   }
 
   std::vector<entt::entity> Scene::nodes() const {
-    return registry->view<const NodeEntity>().each()
-      | std::views::keys
-      | std::ranges::to<std::vector<entt::entity>>();
+    std::vector<entt::entity> result;
+    for (const auto& [entity, node] : registry->view<const NodeEntity>().each()) {
+      result.push_back(entity);
+    }
+
+    return result;
   }
 
   std::vector<entt::entity> Scene::node_neighbors(entt::entity entity) const {
@@ -276,9 +277,9 @@ namespace CrocobyGraph {
 
   std::vector<entt::entity> Scene::node_edges(entt::entity entity) const {
     std::vector<entt::entity> result;
-    registry->view<const EdgeEntity>().each([&](const entt::entity edge_entity) {
+    for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
       result.push_back(edge_entity);
-    });
+    }
 
     return result;
   }
@@ -319,10 +320,11 @@ namespace CrocobyGraph {
   }
 
   bool Scene::nodes_connected(entt::entity node_a, entt::entity node_b) const {
-    return std::ranges::any_of(registry->view<const EdgeEntity>(), [&](const entt::entity edge_entity) {
-      const auto& edge = registry->get<const EdgeEntity>(edge_entity);
-      return (edge.node_start == node_a && edge.node_end == node_b) || (edge.node_start == node_b && edge.node_end == node_a);
-    });
+    for (const auto& [entity, edge] : registry->view<const EdgeEntity>().each()) {
+      if (edge.node_start == node_a && edge.node_end == node_b || edge.node_start == node_b && edge.node_end == node_a) return true;
+    }
+
+    return false;
   }
 
   entt::entity Scene::nodes_connect(entt::entity node_a, entt::entity node_b) {
