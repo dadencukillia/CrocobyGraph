@@ -278,7 +278,7 @@ namespace CrocobyGraph {
   std::vector<entt::entity> Scene::node_edges(entt::entity entity) const {
     std::vector<entt::entity> result;
     for (const auto& [edge_entity, edge] : registry->view<const EdgeEntity>().each()) {
-      result.push_back(edge_entity);
+      if (edge.node_start == entity || edge.node_end == entity) result.push_back(edge_entity);
     }
 
     return result;
