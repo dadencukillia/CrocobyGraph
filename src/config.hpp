@@ -20,6 +20,7 @@ namespace CrocobyGraph {
   inline constexpr float LABEL_SPACING { 0.f };
 
   // Physics
+  inline constexpr uint8_t PHYSICS_CALCULATIONS_THREADS { 3 };
   inline constexpr float PHYSICS_ATTRACTION_CONSTANT { 5.f };
   inline constexpr float PHYSICS_REPULSION_CONSTANT { 1'000'000.f };
   inline constexpr float PHYSICS_GRAVITY_CONSTANT { .8f };

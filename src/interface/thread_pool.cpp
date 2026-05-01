@@ -51,16 +51,7 @@ namespace CrocobyGraph {
     tasks_status.clear();
   }
 
-  ThreadPool::~ThreadPool() {
-    try {
-      flush();
-    } catch (...) {}
-
-    should_stop = true;
-    set_threads_count_force(0);
-  }
-
-  void ThreadPool::set_threads_count_force(uint8_t new_count) {
+  void ThreadPool::set_threads_count(uint8_t new_count) {
     if (std::this_thread::get_id() != main_thread) throw std::runtime_error("Not accessible for calling not from the main thread");
     if (new_count > threads_count) {
       for (uint8_t i = threads_count; i < new_count; ++i) {
@@ -84,8 +75,13 @@ namespace CrocobyGraph {
     }
   }
 
-  void ThreadPool::set_minimum_threads(uint8_t minimum) {
-    set_threads_count_force(std::max(threads_count, minimum));
+  ThreadPool::~ThreadPool() {
+    try {
+      flush();
+    } catch (...) {}
+
+    should_stop = true;
+    set_threads_count(0);
   }
 
   size_t ThreadPool::enqueue_task(std::function<void()>&& task) {

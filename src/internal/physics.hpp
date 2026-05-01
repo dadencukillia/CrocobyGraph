@@ -4,6 +4,8 @@
 #include "../interface/components.hpp"
 #include "../interface/ecs.hpp"
 #include "../interface/scene.hpp"
+#include "../interface/thread_pool_counter.hpp"
+#include "../config.hpp"
 #include <cstddef>
 
 namespace CrocobyGraph {
@@ -15,6 +17,7 @@ namespace CrocobyGraph {
     GraphECS* ecs { nullptr };
     bool with_jelly { false };
     PositionComponent jelly_ideal_points[jelly_points] {};
+    ThreadPoolCounter threads { PHYSICS_CALCULATIONS_THREADS };
 
     void update_velocity(double delta);
     void move(double delta);

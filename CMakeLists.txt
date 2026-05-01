@@ -28,6 +28,7 @@ add_library(CrocobyGraph
   ./src/interface/scene.cpp
   ./src/interface/window_system.cpp
   ./src/interface/thread_pool.cpp
+  ./src/interface/thread_pool_counter.cpp
 
   ./src/internal/window.cpp
   ./src/internal/math.cpp

@@ -13,6 +13,8 @@
 namespace CrocobyGraph {
 
   class ThreadPool {
+    std::vector<uint8_t> threads_stack;
+
     std::thread::id main_thread { std::this_thread::get_id() };
     std::queue<std::pair<size_t, std::function<void()>>> tasks;
     bool should_stop { false };
@@ -30,8 +32,10 @@ namespace CrocobyGraph {
 
     std::thread spawn_thread();
     void flush();
+    void set_threads_count(uint8_t new_count);
 
     friend class GraphECS;
+    friend class ThreadPoolCounter;
 
   public:
     ThreadPool() = default;
@@ -40,8 +44,6 @@ namespace CrocobyGraph {
 
     ~ThreadPool();
 
-    void set_threads_count_force(uint8_t new_count);
-    void set_minimum_threads(uint8_t minimum);
     size_t enqueue_task(std::function<void()>&& task);
     [[nodiscard]] bool task_completed(size_t task);
     void wait_for_task(size_t task);

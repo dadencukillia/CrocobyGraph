@@ -10,9 +10,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <new>
-#include <thread>
 #include <vector>
 #include "raylib.h"
 
@@ -40,6 +38,8 @@ namespace CrocobyGraph {
         crossplatform_sincos(angle, &jelly_ideal_points[i].y, &jelly_ideal_points[i].x);
       }
     }
+
+    threads.add_thread_pool(ecs->get_threadpool());
   }
 
   void Physics::update(double delta) {
@@ -84,7 +84,6 @@ namespace CrocobyGraph {
       a_vel.y -= delta * TARGET_TPS * force_apply.y * vel_denominator;
     }
 
-    constexpr uint8_t threads { 3 };
     constexpr size_t cache_line_size { std::hardware_destructive_interference_size };
     constexpr size_t velocity_type_size { sizeof(VelocityComponent) };
     constexpr size_t chunk_multiple { std::max(1uz, cache_line_size / velocity_type_size) };
@@ -137,12 +136,10 @@ namespace CrocobyGraph {
       });
 
       const entt::entity* velocity_data { storage.data() };
-      const size_t chunk_size { ((velocity_count / threads + chunk_multiple - 1) / chunk_multiple) * chunk_multiple };
-      size_t thread_handlers[threads];
+      const size_t chunk_size { ((velocity_count / PHYSICS_CALCULATIONS_THREADS + chunk_multiple - 1) / chunk_multiple) * chunk_multiple };
+      size_t thread_handlers[PHYSICS_CALCULATIONS_THREADS];
 
-      ecs->get_threadpool().set_minimum_threads(threads);
-
-      for (uint8_t thread = 0; thread < threads; ++thread) {
+      for (uint8_t thread = 0; thread < PHYSICS_CALCULATIONS_THREADS; ++thread) {
         const entt::entity* start = &velocity_data[chunk_size * thread];
         const size_t len = std::min(chunk_size, velocity_count - chunk_size * thread);
         thread_handlers[thread] = ecs->get_threadpool().enqueue_task([thread_worker, start, len]() {
@@ -150,7 +147,7 @@ namespace CrocobyGraph {
         });
       }
 
-      for (uint8_t thread = 0; thread < threads; ++thread) {
+      for (uint8_t thread = 0; thread < PHYSICS_CALCULATIONS_THREADS; ++thread) {
         ecs->get_threadpool().wait_for_task(thread_handlers[thread]);
       }
     } else {
