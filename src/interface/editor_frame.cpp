@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <optional>
 #include <string_view>
 #include "../internal/resources.hpp"
 #include "imgui.h"

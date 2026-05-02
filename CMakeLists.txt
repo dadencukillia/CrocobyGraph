@@ -17,6 +17,8 @@ find_package(entt REQUIRED)
 add_library(CrocobyGraph
   ./src/resources/editor_icons.cpp
   ./src/resources/open_sans.cpp
+  ./src/resources/media_controls_icons.cpp
+  ./src/resources/circle_icons.cpp
 
   ./src/interface/batch.cpp
   ./src/interface/color.cpp
@@ -29,6 +31,7 @@ add_library(CrocobyGraph
   ./src/interface/window_system.cpp
   ./src/interface/thread_pool.cpp
   ./src/interface/thread_pool_counter.cpp
+  ./src/interface/bfs_frame.cpp
 
   ./src/internal/window.cpp
   ./src/internal/math.cpp

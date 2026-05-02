@@ -26,7 +26,7 @@ int main() {
   // Add labels
   ecs.get_scene().node_set_label(real_entity1, "Updated");
 
-  ecs.add_system(cg::get_window_system<cg::PhysicsFrame, cg::EditorFrame>());
+  ecs.add_system(cg::get_window_system<cg::BFSFrame, cg::EditorFrame>());
   ecs.run_loop();
 
   return 0;
