@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
 #include <string>
 
 namespace CrocobyGraph {
@@ -260,11 +259,13 @@ namespace CrocobyGraph {
                 saved_path = { finish_node };
                 saved_path.reserve(order + 2);
 
+                size_t order_last_index { static_cast<size_t>(std::ranges::find_last(visited_orders, order).begin() - visited_orders.begin()) };
                 for (uint32_t order_back = order; order_back > 0; --order_back) {
-                  const auto order_last_index { std::ranges::find_last(visited_orders, order_back).begin() - visited_orders.begin() };
                   const auto prev_node { saved_path.back() };
 
+                  size_t last_node_index { order_last_index };
                   for (size_t node_index = order_last_index; node_index > 0; --node_index) {
+                    last_node_index = node_index;
                     if (visited_orders[node_index] != order_back) break;
 
                     for (const auto& [_, edge] : registry.view<const EdgeEntity>().each()) {
@@ -280,6 +281,13 @@ namespace CrocobyGraph {
                   }
 
                   end_order_loop:
+
+                  for (size_t node_index = last_node_index; node_index > 0; --node_index) {
+                    if (visited_orders[node_index] != order_back) {
+                      order_last_index = node_index;
+                      break;
+                    }
+                  }
                 }
 
                 saved_path.push_back(start_node);
