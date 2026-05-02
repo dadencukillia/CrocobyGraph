@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <format>
 #include <iostream>
 #include <string>
 
@@ -88,6 +87,8 @@ namespace CrocobyGraph {
         if (ImGui::Button("Clear start node")) {
           reset();
           start_node = entt::null;
+          ImGui::End();
+          return;
         }
       } else {
         reset();
@@ -113,6 +114,8 @@ namespace CrocobyGraph {
         if (ImGui::Button("Clear finish node")) {
           reset();
           finish_node = entt::null;
+          ImGui::End();
+          return;
         }
       } else {
         reset();
@@ -133,6 +136,8 @@ namespace CrocobyGraph {
         start_node = entt::null;
         finish_node = entt::null;
         reset();
+        ImGui::End();
+        return;
       }
 
       ImGui::Text("Frame: %d", frame);
@@ -158,10 +163,6 @@ namespace CrocobyGraph {
         visualization_time += info.delta;
         frame = visualization_time / frame_interval_seconds;
       }
-
-      std::cout << visited_nodes.size() << '\n';
-      std::cout << visited_orders.size() << '\n';
-      std::cout << labels_pool.size() << '\n';
 
       if (show_visualization) {
         ResourceCounter<FontResource> font_res;
@@ -212,7 +213,7 @@ namespace CrocobyGraph {
               last_pos = translated;
               first = false;
             } else [[likely]] {
-              DrawLineEx(translated, last_pos, EDGES_THICKNESS * info.camera_zoom * 2.0f, Color { 0xFF000055 });
+              DrawLineEx(translated, last_pos, EDGES_THICKNESS * info.camera_zoom * 2.0f, Color { 0xFF0000FF });
               last_pos = translated;
             }
           }
@@ -259,20 +260,18 @@ namespace CrocobyGraph {
                 saved_path = { finish_node };
                 saved_path.reserve(order + 2);
 
-                auto order_last_index = std::ranges::find_last(visited_orders, order).begin() - visited_orders.begin();
                 for (uint32_t order_back = order; order_back > 0; --order_back) {
+                  const auto order_last_index { std::ranges::find_last(visited_orders, order_back).begin() - visited_orders.begin() };
                   const auto prev_node { saved_path.back() };
 
                   for (size_t node_index = order_last_index; node_index > 0; --node_index) {
-                    if (visited_orders[node_index] != order_back) {
-                      order_last_index = node_index;
-                      break;
-                    }
+                    if (visited_orders[node_index] != order_back) break;
 
                     for (const auto& [_, edge] : registry.view<const EdgeEntity>().each()) {
+                      bool undirected { !(edge.arrow_on_start || edge.arrow_on_end) };
                       if (
-                        (edge.node_start == prev_node && edge.arrow_on_start && edge.node_end == visited_nodes[node_index]) ||
-                        (edge.node_end == prev_node && edge.arrow_on_end && edge.node_start == visited_nodes[node_index])
+                        (edge.node_start == prev_node && (edge.arrow_on_start || undirected) && edge.node_end == visited_nodes[node_index]) ||
+                        (edge.node_end == prev_node && (edge.arrow_on_end || undirected) && edge.node_start == visited_nodes[node_index])
                       ) {
                         saved_path.push_back(visited_nodes[node_index]);
                         goto end_order_loop;
@@ -284,17 +283,20 @@ namespace CrocobyGraph {
                 }
 
                 saved_path.push_back(start_node);
+                goto found_target_node;
               }
             }
 
             queue.pop();
           }
 
+          found_target_node:
+
           for (size_t i = labels_pool.size() + 1; i <= frame; ++i) {
             labels_pool.push_back(std::to_string(i));
           }
         } else {
-          frame = it - visited_nodes.begin();
+          frame = visited_orders[it - visited_nodes.begin()];
           paused = true;
         }
       } else if (prev_frame > frame) {
