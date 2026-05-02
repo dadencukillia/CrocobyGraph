@@ -91,7 +91,7 @@ namespace CrocobyGraph {
     auto& storage { registry.storage<VelocityComponent>() };
     const size_t velocity_count { storage.size() };
 
-    const auto thread_worker = [&](const entt::entity* start, const size_t len) {
+    const auto thread_worker = [delta, &registry](const entt::entity* start, const size_t len) {
       for (size_t i = 0; i < len; ++i) {
         const auto entity = start[i];
         const auto& [node, pos, repulsion, velocity] = registry.get<const NodeEntity, const PositionComponent, const RepulsionComponent, VelocityComponent>(entity);
@@ -129,7 +129,7 @@ namespace CrocobyGraph {
       }
     };
 
-    if (velocity_count >= 128) {
+    if (velocity_count >= 128 && PHYSICS_CALCULATIONS_THREADS != 0) {
       // Ensures that VelocityComponents will be located in the memory by the id order
       registry.sort<VelocityComponent>([](const entt::entity lhs, const entt::entity rhs) {
         return lhs < rhs;
@@ -137,18 +137,18 @@ namespace CrocobyGraph {
 
       const entt::entity* velocity_data { storage.data() };
       const size_t chunk_size { ((velocity_count / PHYSICS_CALCULATIONS_THREADS + chunk_multiple - 1) / chunk_multiple) * chunk_multiple };
-      size_t thread_handlers[PHYSICS_CALCULATIONS_THREADS];
+      size_t task_ids[PHYSICS_CALCULATIONS_THREADS];
 
       for (uint8_t thread = 0; thread < PHYSICS_CALCULATIONS_THREADS; ++thread) {
         const entt::entity* start = &velocity_data[chunk_size * thread];
-        const size_t len = std::min(chunk_size, velocity_count - chunk_size * thread);
-        thread_handlers[thread] = ecs->get_threadpool().enqueue_task([thread_worker, start, len]() {
+        const size_t len = std::min(chunk_size, velocity_count - chunk_size * thread - 1);
+        task_ids[thread] = ecs->get_threadpool().enqueue_task([thread_worker, start, len]() {
           thread_worker(start, len);
         });
       }
 
       for (uint8_t thread = 0; thread < PHYSICS_CALCULATIONS_THREADS; ++thread) {
-        ecs->get_threadpool().wait_for_task(thread_handlers[thread]);
+        ecs->get_threadpool().wait_for_task(task_ids[thread]);
       }
     } else {
       const entt::entity* velocity_data { storage.data() };

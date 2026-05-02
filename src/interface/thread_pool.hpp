@@ -13,22 +13,26 @@
 namespace CrocobyGraph {
 
   class ThreadPool {
-    std::vector<uint8_t> threads_stack;
+    struct {
+      std::thread::id main_thread { std::this_thread::get_id() };
+      std::vector<uint8_t> threads_stack;
+      std::vector<std::thread> threads;
+      size_t tasks_counter { 0 };
+      uint8_t threads_count { 0 };
+    } only_main_access;
 
-    std::thread::id main_thread { std::this_thread::get_id() };
-    std::queue<std::pair<size_t, std::function<void()>>> tasks;
-    bool should_stop { false };
-    std::mutex tasks_mutex;
-    std::condition_variable condition;
+    alignas(64) struct {
+      bool should_stop { false };
 
-    size_t tasks_counter { 0 };
-    std::vector<uint8_t> tasks_status;
-    std::mutex tasks_status_mutex;
-    std::condition_variable complete_condition;
-    size_t tasks_active { 0 };
+      std::queue<std::pair<size_t, std::function<void()>>> tasks;
+      std::mutex tasks_mutex;
+      std::condition_variable task_condition;
 
-    std::vector<std::thread> threads;
-    uint8_t threads_count { 0 };
+      std::vector<uint8_t> tasks_status;
+      std::mutex tasks_status_mutex;
+      std::condition_variable complete_condition;
+      size_t tasks_active { 0 };
+    } both_access;
 
     std::thread spawn_thread();
     void flush();
