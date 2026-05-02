@@ -5,6 +5,7 @@
 #include "../src/interface/batch.hpp"
 #include "../src/interface/layout.hpp"
 #include "../src/interface/neural_network.hpp"
+#include "../src/interface/grid.hpp"
 #include "../src/interface/vector.hpp"
 
 #endif
