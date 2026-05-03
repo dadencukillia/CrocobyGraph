@@ -1,12 +1,12 @@
 #ifndef _CGRAPH_INTERFACE_SCENE_HPP_
 #define _CGRAPH_INTERFACE_SCENE_HPP_
 
+#include "adjacency_matrix.hpp"
 #include "batch.hpp"
 #include "color.hpp"
 #include "entities.hpp"
 #include "entt/entity/fwd.hpp"
 #include "vector.hpp"
-#include <ranges>
 #include <string_view>
 #include <vector>
 
@@ -28,7 +28,7 @@ namespace CrocobyGraph {
     std::vector<entt::entity> append(Batch&& batch, float offset_x = 0.0f, float offset_y = 0.0f);
     Scene& operator+=(Batch&& batch);
 
-    [[nodiscard]] std::pair<std::vector<entt::entity>, std::vector<std::vector<bool>>> adjacency_matrix() const;
+    [[nodiscard]] std::pair<std::vector<entt::entity>, AdjacencyMatrix> adjacency_matrix() const;
 
     [[nodiscard]] PrimitiveType type(entt::entity entity) const;
     [[nodiscard]] Vector pos(entt::entity entity) const;

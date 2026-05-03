@@ -1,31 +1,29 @@
 #include "adjacency_matrix.hpp"
+#include <cstddef>
 #include <stdexcept>
 
 namespace CrocobyGraph {
 
-  AdjacencyMatrix::AdjacencyMatrix(size_t rows, size_t cols) :
-    rows { rows },
-    cols { cols },
-    matrix { std::vector<uint8_t>(rows * cols, 0) } {}
+  AdjacencyMatrix::AdjacencyMatrix(size_t nodes) :
+    nodes { nodes },
+    matrix { std::vector<uint8_t>(nodes * nodes, 0) } {}
 
   AdjacencyMatrix::AdjacencyMatrix(const AdjacencyMatrix& another) {
-    rows = another.rows;
-    cols = another.cols;
+    nodes = another.nodes;
     matrix = another.matrix;
   }
 
   AdjacencyMatrix& AdjacencyMatrix::operator=(const AdjacencyMatrix& another) {
-    rows = another.rows;
-    cols = another.cols;
+    nodes = another.nodes;
     matrix = another.matrix;
     return *this;
   }
 
   AdjacencyMatrix AdjacencyMatrix::transpose() const noexcept {
-    AdjacencyMatrix new_matrix { cols, rows };
-    for (size_t i = 0; i < rows; ++i) {
-      for (size_t j = 0; j < cols; ++j) {
-        new_matrix.matrix[j * rows + i] = matrix[i * cols + j];
+    AdjacencyMatrix new_matrix { nodes };
+    for (size_t i = 0; i < nodes; ++i) {
+      for (size_t j = 0; j < nodes; ++j) {
+        new_matrix.matrix[j * nodes + i] = matrix[i * nodes + j];
       }
     }
 
@@ -33,10 +31,10 @@ namespace CrocobyGraph {
   }
 
   AdjacencyMatrix AdjacencyMatrix::operator+(const AdjacencyMatrix& another) {
-    if (rows != another.rows || cols != another.cols) throw std::length_error("Matrices must have same size for this operation");
+    if (nodes != another.nodes) throw std::length_error("Matrices must have same size for this operation");
 
-    AdjacencyMatrix new_matrix { rows, cols };
-    for (size_t i = 0; i < rows * cols; ++i) {
+    AdjacencyMatrix new_matrix { nodes };
+    for (size_t i = 0; i < nodes * nodes; ++i) {
       new_matrix.matrix[i] = matrix[i] || another.matrix[i];
     }
 
@@ -44,18 +42,18 @@ namespace CrocobyGraph {
   }
 
   AdjacencyMatrix AdjacencyMatrix::operator*(const AdjacencyMatrix& another) {
-    if (cols != another.rows) throw std::length_error("Matrices must have corresponding sizes for this operation");
+    if (nodes != another.nodes) throw std::length_error("Matrices must have same size for this operation");
 
-    AdjacencyMatrix new_matrix { rows, another.cols };
+    AdjacencyMatrix new_matrix { nodes };
     const AdjacencyMatrix transposed { another.transpose() };
 
-    for (size_t i = 0; i < new_matrix.rows; ++i) {
-      for (size_t j = 0; j < new_matrix.cols; ++j) {
+    for (size_t i = 0; i < nodes; ++i) {
+      for (size_t j = 0; j < nodes; ++j) {
         bool r { false };
-        for (size_t n = 0; n < cols && !r; ++n) {
-          r = matrix[i * cols + n] && transposed.matrix[j * cols + n];
+        for (size_t n = 0; n < nodes && !r; ++n) {
+          r = matrix[i * nodes + n] && transposed.matrix[j * nodes + n];
         }
-        new_matrix.matrix[i * new_matrix.cols + j] = r;
+        new_matrix.matrix[i * nodes + j] = r;
       }
     }
 

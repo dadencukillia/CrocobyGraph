@@ -10,25 +10,24 @@ namespace CrocobyGraph {
 
   class AdjacencyMatrix {
     std::vector<uint8_t> matrix;
-    size_t rows { 0 };
-    size_t cols { 0 };
+    size_t nodes { 0 };
 
   public:
     AdjacencyMatrix() = delete;
 
-    AdjacencyMatrix(size_t rows, size_t cols);
+    AdjacencyMatrix(size_t nodes);
     AdjacencyMatrix(const AdjacencyMatrix& another);
     ~AdjacencyMatrix() noexcept = default;
     AdjacencyMatrix& operator=(const AdjacencyMatrix& another);
 
-    [[nodiscard]] inline bool at(size_t row, size_t col) const {
-      assert(col < cols && row < rows && "Out of size");
-      return matrix[row * cols + col];
+    [[nodiscard]] inline bool at(size_t node, size_t connection_node) const {
+      assert(node < nodes && connection_node < nodes && "Out of size");
+      return matrix[node * nodes + connection_node];
     }
 
-    void inline set(size_t row, size_t col, bool value) {
-      assert(col < cols && row < rows && "Out of size");
-      matrix[row * cols + col] = value;
+    void inline set(size_t node, size_t connection_node, bool value) {
+      assert(node < nodes && connection_node < nodes && "Out of size");
+      matrix[node * nodes + connection_node] = value;
     }
 
     [[nodiscard]] AdjacencyMatrix transpose() const noexcept;
