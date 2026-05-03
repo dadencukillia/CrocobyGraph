@@ -20,14 +20,22 @@ namespace CrocobyGraph {
     ~AdjacencyMatrix() noexcept = default;
     AdjacencyMatrix& operator=(const AdjacencyMatrix& another);
 
-    [[nodiscard]] inline bool at(size_t node, size_t connection_node) const {
+    [[nodiscard]] inline size_t size() const noexcept {
+      return nodes;
+    }
+
+    [[nodiscard]] inline bool at(size_t node, size_t connection_node) const noexcept {
       assert(node < nodes && connection_node < nodes && "Out of size");
       return matrix[node * nodes + connection_node];
     }
 
-    void inline set(size_t node, size_t connection_node, bool value) {
+    void inline set(size_t node, size_t connection_node, bool value) noexcept {
       assert(node < nodes && connection_node < nodes && "Out of size");
       matrix[node * nodes + connection_node] = value;
+    }
+
+    [[nodiscard]] inline bool operator==(const AdjacencyMatrix& another) const noexcept {
+      return matrix == another.matrix;
     }
 
     [[nodiscard]] AdjacencyMatrix transpose() const noexcept;

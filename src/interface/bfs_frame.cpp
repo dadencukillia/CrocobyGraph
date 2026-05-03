@@ -2,6 +2,7 @@
 #include "../internal/resource_counter.hpp"
 #include "../internal/resources.hpp"
 #include "../internal/math.hpp"
+#include "adjacency_matrix.hpp"
 #include "components.hpp"
 #include "ecs.hpp"
 #include "entities.hpp"
@@ -13,31 +14,14 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <string>
 
 namespace CrocobyGraph {
 
-  uint64_t BFSFrame::generate_scene_hash(GraphECS& ecs) const {
-    const auto& registry { ecs.get_scene().get_registry() };
-    uint64_t hash { 0 };
-
-    for (const auto& [entity, edge] : registry.view<const EdgeEntity>().each()) {
-      uint64_t edge_hash { (static_cast<uint64_t>(edge.node_start) << 32) | static_cast<uint64_t>(edge.node_end) };
-      const uint64_t flags { (static_cast<uint64_t>(edge.arrow_on_start) << 1) | static_cast<uint64_t>(edge.arrow_on_end) };
-
-      edge_hash ^= (flags + 1) * 0x9E3779B97F4A7C15ULL;
-      edge_hash = (edge_hash ^ (edge_hash >> 30)) * 0xbf58476d1ce4e5b9ULL;
-      edge_hash = (edge_hash ^ (edge_hash >> 27)) * 0x94d049bb133111ebULL;
-      edge_hash = edge_hash ^ (edge_hash >> 31);
-      hash += edge_hash;
-    }
-
-    return std::max(2ul, hash);
-  }
-
   void BFSFrame::reset() {
     frame = 0;
-    scene_hash = 0;
+    prev_matrix = { 0 };
     queue = {};
     visited_nodes = {};
     visited_orders = {};
@@ -46,6 +30,7 @@ namespace CrocobyGraph {
     visualization_time = 0.0f;
     labels_pool = {};
     saved_path = {};
+    topology_state = TopologyState::NotSet;
   }
 
   void BFSFrame::load(GraphECS& ecs) {
@@ -65,9 +50,11 @@ namespace CrocobyGraph {
     const auto& registry { ecs.get_scene().get_registry() };
     ResourceCounter<MediaControlIcons> media_control_icons_res;
     const auto& media_control_icons { media_control_icons_res.get() };
+    const auto [nodes, matrix] { ecs.get_scene().adjacency_matrix() };
 
     ImGui::Begin("BFS", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
+    // Button to choose start node
     if (start_node == entt::null) {
       if (start_node_selection) {
         draw_start_selection(info, ecs);
@@ -95,6 +82,7 @@ namespace CrocobyGraph {
       }
     }
 
+    // Button to choose finish node
     if (finish_node == entt::null) {
       if (finish_node_selection) {
         draw_finish_selection(info, ecs);
@@ -122,14 +110,20 @@ namespace CrocobyGraph {
       }
     }
 
+    // When both nodes are chosen
     if (start_node != entt::null && finish_node != entt::null) {
-      const auto cur_scene_hash { generate_scene_hash(ecs) };
-      if (scene_hash == 0) scene_hash = cur_scene_hash;
-      else if (scene_hash != cur_scene_hash) {
-        scene_hash = 1;
+      // Check topology changes by matrix
+      if (topology_state == TopologyState::NotSet) {
+        topology_state = TopologyState::Valid;
+        prev_matrix = matrix;
+      } else if (topology_state == TopologyState::Valid && prev_matrix != matrix) {
+        topology_state = TopologyState::Invalid;
+        prev_matrix = { 0 };
+      } else if (topology_state == TopologyState::Invalid) {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Graph topology was changed.\nWe recommend reset the BFS.");
       }
 
+      // UI
       ImGui::Checkbox("Show visualization", &show_visualization);
       if (ImGui::Button("Reset")) {
         start_node = entt::null;
@@ -158,12 +152,15 @@ namespace CrocobyGraph {
       ImGui::SameLine();
       if (ImGui::ImageButton("seek_forward", static_cast<ImTextureID>(media_control_icons.forward_icon.id), ImVec2 { 24.0f, 24.0f })) ++frame;
 
+      // Frames auto increase by time
       if (!paused) {
         visualization_time += info.delta;
         frame = visualization_time / frame_interval_seconds;
       }
 
+      // Visualization on the canvas
       if (show_visualization) {
+        // Orders display
         ResourceCounter<FontResource> font_res;
         const auto& font { font_res.get() };
 
@@ -190,6 +187,7 @@ namespace CrocobyGraph {
           );
         }
 
+        // Shortest path display
         if (!saved_path.empty()) {
           Vector2 last_pos {};
           bool first { true };
@@ -219,32 +217,38 @@ namespace CrocobyGraph {
         }
       }
 
-      if (frame == 0 && queue.empty()) {
-        queue.push({ 0, start_node });
-        visited_nodes = { start_node };
-        visited_orders = { 0 };
-        labels_pool.clear();
+      if (queue.empty()) {
+        if (frame == 0) {
+          // Initial values
+          queue.push({ 0, start_node });
+          visited_nodes = { start_node };
+          visited_orders = { 0 };
+          labels_pool.clear();
+        } else {
+          paused = true;
+          frame = visited_orders.back() + 1;
+          ImGui::TextColored(ImVec4 { 1.0f, 0.0f, 0.0f, 1.0f }, "Target isn't reachable");
+        }
       } else if (prev_frame < frame) {
+        // When frame increased
+
         auto it = std::ranges::find(visited_nodes, finish_node);
         if (it == visited_nodes.end()) {
+          // When we haven't reached the target
+          // BFS calculations
+
           while (!queue.empty()) {
             const auto& queue_item = queue.front();
             const auto order = queue_item.first;
             const auto entity = queue_item.second;
+            const auto it { std::ranges::lower_bound(nodes, entity) };
+            const size_t matrix_index { static_cast<size_t>(std::distance(nodes.begin(), it)) };
 
             if (order < prev_frame || order >= frame) break;
 
-            for (const auto& [edge_entity, edge] : registry.view<const EdgeEntity>().each()) {
-              entt::entity node_id { entt::null };
-              if (
-                !(edge.arrow_on_start || edge.arrow_on_end) &&
-                (edge.node_start == entity || edge.node_end == entity)
-              ) {
-                node_id = edge.node_start == entity ? edge.node_end : edge.node_start;
-              } else if (edge.node_start == entity && edge.arrow_on_end) node_id = edge.node_end;
-              else if (edge.node_end == entity && edge.arrow_on_start) node_id = edge.node_start;
-              else continue;
-
+            for (size_t node_index = 0; node_index < nodes.size(); ++node_index) {
+              const auto node_id { nodes[node_index] };
+              if (!matrix.at(matrix_index, node_index)) continue;
               auto it = std::ranges::find(visited_nodes, node_id);
               if (it != visited_nodes.end()) continue;
 
@@ -255,42 +259,7 @@ namespace CrocobyGraph {
               if (node_id == finish_node) {
                 frame = order + 1;
                 paused = true;
-
-                saved_path = { finish_node };
-                saved_path.reserve(order + 2);
-
-                size_t order_last_index { static_cast<size_t>(std::ranges::find_last(visited_orders, order).begin() - visited_orders.begin()) };
-                for (uint32_t order_back = order; order_back > 0; --order_back) {
-                  const auto prev_node { saved_path.back() };
-
-                  size_t last_node_index { order_last_index };
-                  for (size_t node_index = order_last_index; node_index > 0; --node_index) {
-                    last_node_index = node_index;
-                    if (visited_orders[node_index] != order_back) break;
-
-                    for (const auto& [_, edge] : registry.view<const EdgeEntity>().each()) {
-                      bool undirected { !(edge.arrow_on_start || edge.arrow_on_end) };
-                      if (
-                        (edge.node_start == prev_node && (edge.arrow_on_start || undirected) && edge.node_end == visited_nodes[node_index]) ||
-                        (edge.node_end == prev_node && (edge.arrow_on_end || undirected) && edge.node_start == visited_nodes[node_index])
-                      ) {
-                        saved_path.push_back(visited_nodes[node_index]);
-                        goto end_order_loop;
-                      }
-                    }
-                  }
-
-                  end_order_loop:
-
-                  for (size_t node_index = last_node_index; node_index > 0; --node_index) {
-                    if (visited_orders[node_index] != order_back) {
-                      order_last_index = node_index;
-                      break;
-                    }
-                  }
-                }
-
-                saved_path.push_back(start_node);
+                saved_path = build_nodes_path(nodes, matrix);
                 goto found_target_node;
               }
             }
@@ -329,6 +298,47 @@ namespace CrocobyGraph {
     }
 
     ImGui::End();
+  }
+
+  std::vector<entt::entity> BFSFrame::build_nodes_path(const std::vector<entt::entity>& nodes_map, const AdjacencyMatrix& matrix) {
+    std::vector<entt::entity> path;
+    uint32_t order { visited_orders.back() };
+    path = { finish_node };
+    path.reserve(order + 1);
+
+    size_t order_last_index { static_cast<size_t>(std::ranges::find_last(visited_orders, order - 1).begin() - visited_orders.begin()) };
+    auto prev_node { path.back() };
+    auto prev_it { std::ranges::lower_bound(nodes_map, prev_node) };
+    size_t prev_mat_index { static_cast<size_t>(std::distance(nodes_map.begin(), prev_it)) };
+    for (uint32_t order_back = order - 1; order_back > 0; --order_back) {
+      size_t last_node_index { order_last_index };
+      for (size_t node_index = order_last_index; node_index > 0; --node_index) {
+        last_node_index = node_index;
+        if (visited_orders[node_index] != order_back) break;
+
+        const auto cur_node { visited_nodes[node_index] };
+        const auto cur_it { std::ranges::lower_bound(nodes_map, cur_node) };
+        const size_t cur_mat_index { static_cast<size_t>(std::distance(nodes_map.begin(), cur_it)) };
+        if (matrix.at(cur_mat_index, prev_mat_index)) {
+          path.push_back(cur_node);
+          prev_node = cur_node;
+          prev_it = cur_it;
+          prev_mat_index = cur_mat_index;
+          break;
+        }
+      }
+
+      // Find last node of the previous order to start with in the next iteration
+      for (size_t node_index = last_node_index; node_index > 0; --node_index) {
+        if (visited_orders[node_index] != order_back) {
+          order_last_index = node_index;
+          break;
+        }
+      }
+    }
+
+    path.push_back(start_node);
+    return path;
   }
 
   void BFSFrame::draw_start_selection(const WindowInfo& info, GraphECS& ecs) {
