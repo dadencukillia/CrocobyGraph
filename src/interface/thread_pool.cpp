@@ -12,7 +12,7 @@ namespace CrocobyGraph {
       while (true) {
         std::unique_lock<std::mutex> locker(tasks_mutex);
 
-        condition.wait(locker, [this, thread_id]() {
+        task_condition.wait(locker, [this, thread_id]() {
           return !tasks.empty() || should_stop || threads_count <= thread_id;
         });
 
@@ -68,7 +68,7 @@ namespace CrocobyGraph {
         threads.pop_back();
       }
 
-      condition.notify_all();
+      task_condition.notify_all();
       for (auto& thread : to_remove) {
         if (thread.joinable()) thread.join();
       }
@@ -94,7 +94,7 @@ namespace CrocobyGraph {
       tasks_active++;
       tasks_status.push_back(false);
     }
-    condition.notify_one();
+    task_condition.notify_one();
 
     return task_id;
   }
