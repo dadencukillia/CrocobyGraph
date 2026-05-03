@@ -34,6 +34,7 @@ add_library(CrocobyGraph
   ./src/interface/bfs_frame.cpp
   ./src/interface/grid.cpp
   ./src/interface/adjacency_matrix.cpp
+  ./src/interface/dfs_frame.cpp
 
   ./src/internal/window.cpp
   ./src/internal/math.cpp

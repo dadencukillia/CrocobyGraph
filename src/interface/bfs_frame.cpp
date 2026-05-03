@@ -6,8 +6,6 @@
 #include "components.hpp"
 #include "ecs.hpp"
 #include "entities.hpp"
-#include "entt/entity/entity.hpp"
-#include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
 #include "imgui.h"
 #include "raylib.h"
