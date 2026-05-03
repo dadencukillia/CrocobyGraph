@@ -27,6 +27,9 @@ namespace CrocobyGraph {
 
     std::vector<entt::entity> append(Batch&& batch, float offset_x = 0.0f, float offset_y = 0.0f);
     Scene& operator+=(Batch&& batch);
+
+    [[nodiscard]] std::pair<std::vector<entt::entity>, std::vector<std::vector<bool>>> adjacency_matrix() const;
+
     [[nodiscard]] PrimitiveType type(entt::entity entity) const;
     [[nodiscard]] Vector pos(entt::entity entity) const;
     // Returns the position of second node connected to the specified edge
