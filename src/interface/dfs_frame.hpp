@@ -2,7 +2,6 @@
 #define _CGRAPH_INTERFACE_DFS_FRAME_HPP_
 
 #include "adjacency_matrix.hpp"
-#include "bfs_frame.hpp"
 #include "ecs.hpp"
 #include "entt/entity/fwd.hpp"
 #include "window_system.hpp"
@@ -10,6 +9,12 @@
 #include <stack>
 
 namespace CrocobyGraph {
+
+  enum class DFSTopologyState : uint8_t {
+    NotSet,
+    Invalid,
+    Valid
+  };
 
   enum class StackAction : bool {
     Pop,
@@ -24,7 +29,7 @@ namespace CrocobyGraph {
     entt::entity start_node { 0xFFFFFFFF };
     uint32_t frame { 0 };
     float visualization_time { 0.0f };
-    TopologyState topology_state { TopologyState::NotSet };
+    DFSTopologyState topology_state { DFSTopologyState::NotSet };
     bool show_visualization { true };
     bool paused { true };
     bool start_node_selection { false };

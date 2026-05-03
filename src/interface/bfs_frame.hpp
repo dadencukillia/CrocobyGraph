@@ -10,7 +10,7 @@
 
 namespace CrocobyGraph {
 
-  enum class TopologyState : uint8_t {
+  enum class BFSTopologyState : uint8_t {
     NotSet,
     Invalid,
     Valid
@@ -27,7 +27,7 @@ namespace CrocobyGraph {
     entt::entity finish_node { 0xFFFFFFFF };
     uint32_t frame { 0 };
     float visualization_time { 0.0f };
-    TopologyState topology_state { TopologyState::NotSet };
+    BFSTopologyState topology_state { BFSTopologyState::NotSet };
     bool show_visualization { true };
     bool paused { true };
     bool start_node_selection { false };

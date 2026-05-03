@@ -28,7 +28,7 @@ namespace CrocobyGraph {
     visualization_time = 0.0f;
     labels_pool = {};
     saved_path = {};
-    topology_state = TopologyState::NotSet;
+    topology_state = BFSTopologyState::NotSet;
   }
 
   void BFSFrame::load(GraphECS& ecs) {
@@ -111,13 +111,13 @@ namespace CrocobyGraph {
     // When both nodes are chosen
     if (start_node != entt::null && finish_node != entt::null) {
       // Check topology changes by matrix
-      if (topology_state == TopologyState::NotSet) {
-        topology_state = TopologyState::Valid;
+      if (topology_state == BFSTopologyState::NotSet) {
+        topology_state = BFSTopologyState::Valid;
         prev_matrix = matrix;
-      } else if (topology_state == TopologyState::Valid && prev_matrix != matrix) {
-        topology_state = TopologyState::Invalid;
+      } else if (topology_state == BFSTopologyState::Valid && prev_matrix != matrix) {
+        topology_state = BFSTopologyState::Invalid;
         prev_matrix = { 0 };
-      } else if (topology_state == TopologyState::Invalid) {
+      } else if (topology_state == BFSTopologyState::Invalid) {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Graph topology was changed.\nWe recommend reset the BFS.");
       }
 
