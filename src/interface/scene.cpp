@@ -1,11 +1,13 @@
 #include "scene.hpp"
 #include "../internal/labels.hpp"
+#include "adjacency_matrix.hpp"
 #include "batch.hpp"
 #include "components.hpp"
 #include "entities.hpp"
 #include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
 #include "entt/entt.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <stdexcept>
@@ -156,6 +158,31 @@ namespace CrocobyGraph {
   Scene& Scene::operator+=(Batch&& batch) {
     append(std::move(batch));
     return *this;
+  }
+
+  std::pair<std::vector<entt::entity>, AdjacencyMatrix> Scene::adjacency_matrix() const {
+    const auto& nodes_storage { registry->storage<NodeEntity>() };
+    const auto nodes_data { nodes_storage.data() };
+    const size_t nodes_count { nodes_storage.size() };
+
+    std::vector<entt::entity> nodes(nodes_count);
+    for (size_t i = 0; i < nodes_count; ++i) {
+      nodes[i] = nodes_data[i];
+    }
+    std::ranges::sort(nodes);
+
+    AdjacencyMatrix matrix { nodes_count };
+    for (const auto& [_, edge] : registry->view<const EdgeEntity>().each()) {
+      auto it_start { std::ranges::lower_bound(nodes, edge.node_start) };
+      auto it_end { std::ranges::lower_bound(nodes, edge.node_end) };
+      const size_t node_start_index { static_cast<size_t>(std::distance(nodes.begin(), it_start)) };
+      const size_t node_end_index { static_cast<size_t>(std::distance(nodes.begin(), it_end)) };
+      bool directed = edge.arrow_on_start || edge.arrow_on_end;
+      matrix.set(node_start_index, node_end_index, !directed || edge.arrow_on_end);
+      matrix.set(node_end_index, node_start_index, !directed || edge.arrow_on_start);
+    }
+
+    return { std::move(nodes), std::move(matrix) };
   }
 
   PrimitiveType Scene::type(entt::entity entity) const {
