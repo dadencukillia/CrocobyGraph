@@ -1,13 +1,9 @@
-#include "decompose.hpp"
-#include <cmath>
-#include <cstddef>
+#include "layout.hpp"
 #include <map>
-#include <unordered_map>
-#include <vector>
 
 namespace CrocobyGraph {
 
-  Batch decompose(std::vector<LayoutGraphNode>&& nodes) {
+  Batch layout_to_batch(std::vector<LayoutGraphNode>&& nodes) {
     Batch batch {};
     std::unordered_map<std::string, BeingCreatedEntity> name_ids;
     std::vector<BeingCreatedEntity> ids(nodes.size());

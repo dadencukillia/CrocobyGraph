@@ -1,8 +1,10 @@
 #ifndef _CGRAPH_INTERFACE_LAYOUT_HPP_
 #define _CGRAPH_INTERFACE_LAYOUT_HPP_
 
+#include "batch.hpp"
 #include "color.hpp"
 #include <cstddef>
+#include <unordered_map>
 #include <vector>
 
 namespace CrocobyGraph {
@@ -41,6 +43,8 @@ namespace CrocobyGraph {
 
     return layout;
   }
+
+  Batch layout_to_batch(std::vector<LayoutGraphNode>&& nodes);
 
 }
 

@@ -22,7 +22,7 @@ add_library(CrocobyGraph
 
   ./src/interface/batch.cpp
   ./src/interface/color.cpp
-  ./src/interface/decompose.cpp
+  ./src/interface/layout.cpp
   ./src/interface/ecs.cpp
   ./src/interface/editor_frame.cpp
   ./src/interface/physics_frame.cpp
