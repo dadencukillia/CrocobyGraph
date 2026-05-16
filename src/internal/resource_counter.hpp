@@ -64,7 +64,7 @@ namespace CrocobyGraph {
 
     // Call in a singleton's destructor that uses the resource
     static void dec() {
-      auto val = --get_use_counter();
+      const auto val { --get_use_counter() };
       if (val == 0 && is_resource_loaded()) {
         unload_resource();
       }

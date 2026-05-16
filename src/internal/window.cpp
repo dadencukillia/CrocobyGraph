@@ -18,7 +18,7 @@
 namespace CrocobyGraph {
 
   entt::entity create_camera(entt::registry& registry) {
-    auto entity = registry.create();
+    const auto entity { registry.create() };
     registry.emplace<CameraEntity>(entity, 1.0f);
     registry.emplace<PositionComponent>(entity, 0.0f, 0.0f);
 
@@ -26,7 +26,7 @@ namespace CrocobyGraph {
   }
 
   entt::entity create_cursor(entt::registry& registry) {
-    auto entity = registry.create();
+    const auto entity { registry.create() };
     registry.emplace<CursorEntity>(entity, false, false, false);
     registry.emplace<PositionComponent>(entity, 0.0f, 0.0f);
 
@@ -43,7 +43,7 @@ namespace CrocobyGraph {
   }
 
   Window::~Window() {
-    auto& registry = scene->get_registry();
+    auto& registry { scene->get_registry() };
 
     registry.clear<CameraEntity>();
     registry.clear<CursorEntity>();
@@ -76,11 +76,11 @@ namespace CrocobyGraph {
   void Window::draw_background() {
     if (window_states.camera_zoom < 0.5) return;
 
-    int64_t spacing = 50;
-    int64_t left_rect = static_cast<int>(window_states.camera_border_left);
-    int64_t top_rect = static_cast<int>(window_states.camera_border_top);
-    int64_t right_rect = static_cast<int>(window_states.camera_border_right);
-    int64_t bottom_rect = static_cast<int>(window_states.camera_border_bottom);
+    constexpr int64_t spacing { 50 };
+    int64_t left_rect { static_cast<int>(window_states.camera_border_left) };
+    int64_t top_rect { static_cast<int>(window_states.camera_border_top) };
+    int64_t right_rect { static_cast<int>(window_states.camera_border_right) };
+    int64_t bottom_rect { static_cast<int>(window_states.camera_border_bottom) };
 
     left_rect -= 2;
     top_rect -= 2;
@@ -97,24 +97,39 @@ namespace CrocobyGraph {
   }
 
   void Window::draw_components() {
-    const auto& registry = scene->get_registry();
+    const auto& registry { scene->get_registry() };
 
-    Vector2 camera_top_left { window_states.camera_border_left, window_states.camera_border_top };
-    Vector2 camera_bottom_right { window_states.camera_border_right, window_states.camera_border_bottom };
+    const Vector2 camera_top_left { window_states.camera_border_left, window_states.camera_border_top };
+    const Vector2 camera_bottom_right { window_states.camera_border_right, window_states.camera_border_bottom };
 
     // Draw edges (below nodes)
     for (const auto& [entity, edge] : registry.view<const EdgeEntity>().each()) {
-      const auto& pos_a = registry.get<const PositionComponent>(edge.node_start);
+      const auto& pos_a { registry.get<const PositionComponent>(edge.node_start) };
 
       if (edge.node_start == edge.node_end) {
-        auto radius = registry.get<const NodeEntity>(edge.node_start).radius;
-        auto calc_params = calc_self_loop_params({ pos_a.x, pos_a.y }, radius);
-        Vector2 corner = { pos_a.x + calc_params.axis.x, pos_a.y + calc_params.axis.y };
+        const auto radius { registry.get<const NodeEntity>(edge.node_start).radius };
+        const auto calc_params { calc_self_loop_params({ pos_a.x, pos_a.y }, radius) };
+        const Vector2 corner { pos_a.x + calc_params.axis.x, pos_a.y + calc_params.axis.y };
 
-        float border_left = std::min(std::min(pos_a.x, corner.x), std::min(calc_params.control_point1.x, calc_params.control_point2.x));
-        float border_right = std::max(std::max(pos_a.x, corner.x), std::max(calc_params.control_point1.x, calc_params.control_point2.x));
-        float border_top = std::min(std::min(pos_a.y, corner.y), std::min(calc_params.control_point1.y, calc_params.control_point2.y));
-        float border_bottom = std::max(std::max(pos_a.y, corner.y), std::max(calc_params.control_point1.y, calc_params.control_point2.y));
+        const float border_left { std::min(
+          std::min(pos_a.x, corner.x),
+          std::min(calc_params.control_point1.x, calc_params.control_point2.x)
+        ) };
+
+        const float border_right { std::max(
+          std::max(pos_a.x, corner.x),
+          std::max(calc_params.control_point1.x, calc_params.control_point2.x)
+        ) };
+
+        const float border_top { std::min(
+          std::min(pos_a.y, corner.y),
+          std::min(calc_params.control_point1.y, calc_params.control_point2.y)
+        ) };
+
+        const float border_bottom { std::max(
+          std::max(pos_a.y, corner.y),
+          std::max(calc_params.control_point1.y, calc_params.control_point2.y)
+        ) };
 
         if (!check_rect_a_in_rect_b({ border_left, border_top }, { border_right, border_bottom }, camera_top_left, camera_bottom_right)) continue;
 
@@ -124,19 +139,19 @@ namespace CrocobyGraph {
           painter.draw_arrow({ pos_a.x, pos_a.y }, { pos_a.x, pos_a.y }, radius, edge.color, edge.curve_type);
         }
       } else {
-        const auto& pos_b = registry.get<const PositionComponent>(edge.node_end);
+        const auto& pos_b { registry.get<const PositionComponent>(edge.node_end) };
 
-        float border_left = std::min(pos_a.x, pos_b.x) - 3.5f * window_states.camera_zoom;
-        float border_right = std::max(pos_a.x, pos_b.x) + 3.5f * window_states.camera_zoom;
-        float border_top = std::min(pos_a.y, pos_b.y) - 3.5f * window_states.camera_zoom;
-        float border_bottom = std::max(pos_a.y, pos_b.y) + 3.5f * window_states.camera_zoom;
+        const float border_left { std::min(pos_a.x, pos_b.x) - 3.5f * window_states.camera_zoom };
+        const float border_right { std::max(pos_a.x, pos_b.x) + 3.5f * window_states.camera_zoom };
+        const float border_top { std::min(pos_a.y, pos_b.y) - 3.5f * window_states.camera_zoom };
+        const float border_bottom { std::max(pos_a.y, pos_b.y) + 3.5f * window_states.camera_zoom };
 
         if (!check_rect_a_in_rect_b({ border_left, border_top }, { border_right, border_bottom }, camera_top_left, camera_bottom_right)) continue;
 
         painter.draw_edge({ pos_a.x, pos_a.y }, { pos_b.x, pos_b.y }, edge.color, edge.curve_type);
 
         if (edge.arrow_on_start) {
-          const auto radius = registry.get<const NodeEntity>(edge.node_start).radius;
+          const auto radius { registry.get<const NodeEntity>(edge.node_start).radius };
           painter.draw_arrow({ pos_b.x, pos_b.y }, { pos_a.x, pos_a.y }, radius, edge.color, edge.curve_type);
         }
 
@@ -150,11 +165,11 @@ namespace CrocobyGraph {
     // Draw nodes from maps
     for (const auto& [entity, node, pos] : registry.view<const NodeEntity, const PositionComponent>().each()) {
       if (registry.all_of<JellyComponent>(entity)) {
-        float border_left = pos.x - node.radius;
-        float border_right = pos.x + node.radius;
-        float border_top = pos.y - node.radius;
-        float border_bottom = pos.y + node.radius;
-        auto& jelly = registry.get<JellyComponent>(entity);
+        float border_left { pos.x - node.radius };
+        float border_right { pos.x + node.radius };
+        float border_top { pos.y - node.radius };
+        float border_bottom { pos.y + node.radius };
+        const auto& jelly = registry.get<const JellyComponent>(entity);
 
         for (auto& point : jelly.points) {
           border_left = std::min(point.x, border_left);
@@ -182,14 +197,14 @@ namespace CrocobyGraph {
     for (const auto& [entity, label] : registry.view<const LabelEntity>().each()) {
       const auto pos = get_label_position(registry, entity);
 
-      float distance_x = pos.x - window_states.camera_x;
-      float distance_y = pos.y - window_states.camera_y;
-      float distance = distance_x * distance_x + distance_y * distance_y;
-      float max_distance = LABELS_VISIBLE_DISTANCE * LABELS_VISIBLE_DISTANCE / (window_states.camera_zoom * window_states.camera_zoom);
+      const float distance_x { pos.x - window_states.camera_x };
+      const float distance_y { pos.y - window_states.camera_y };
+      const float distance { distance_x * distance_x + distance_y * distance_y };
+      const float max_distance { LABELS_VISIBLE_DISTANCE * LABELS_VISIBLE_DISTANCE / (window_states.camera_zoom * window_states.camera_zoom) };
 
       if (distance > max_distance) continue;
 
-      auto color = label.color;
+      auto color { label.color };
       color.set_alpha(color.get_alpha() * std::max(0.0f, 1.0f - distance / max_distance));
 
       painter.draw_label({ pos.x, pos.y }, label.label, color);
@@ -238,9 +253,10 @@ namespace CrocobyGraph {
       if (window_states.middle_button_down) {
         SetMouseCursor(MOUSE_CURSOR_RESIZE_ALL);
 
-        auto mouse_motion = GetMouseDelta();
-        pos.x -= mouse_motion.x / camera.zoom;
-        pos.y -= mouse_motion.y / camera.zoom;
+        const auto mouse_motion { GetMouseDelta() };
+        const float inv_camera_zoom { 1.0f / camera.zoom };
+        pos.x -= mouse_motion.x * inv_camera_zoom;
+        pos.y -= mouse_motion.y * inv_camera_zoom;
       } else {
         SetMouseCursor(MOUSE_CURSOR_DEFAULT);
       }

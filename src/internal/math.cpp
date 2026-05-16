@@ -8,26 +8,30 @@
 namespace CrocobyGraph {
 
   [[nodiscard]] float ease_cubic_in_out(float t, float b, float c, float d) noexcept {
-    float inv_div = 1.0f / d;
-    float t_p = t * 2.0f * inv_div - 2.0f;
+    const float inv_div { 1.0f / d };
+    const float t_p { t * 2.0f * inv_div - 2.0f };
 
     return t < 0.5f * d ?
       4.0f * c * t * t * t * inv_div * inv_div * inv_div + b :
       0.5f * c * (t_p * t_p * t_p + 2.0f) + b;
   }
 
-  Vector2 calculate_bezier_cubic_dot(Vector2 start, Vector2 end, Vector2 c1, Vector2 c2, float divisions, float index) noexcept {
-    float step = 1.0f / divisions;
-    float t = step * index;
+  Vector2 calculate_bezier_cubic_dot(
+    Vector2 start, Vector2 end,
+    Vector2 c1, Vector2 c2,
+    float segments, float index
+  ) noexcept {
+    const float step { 1.0f / segments };
+    const float t { step * index };
 
-    float t_inv = 1.0f - t;
-    float t_inv_sq = t_inv * t_inv;
-    float t_sq = t * t;
+    const float t_inv { 1.0f - t };
+    const float t_inv_sq { t_inv * t_inv };
+    const float t_sq { t * t };
 
-    float a = t_inv_sq * t_inv;
-    float b = 3.0f * t_inv_sq * t;
-    float c = 3.0f * t_inv * t_sq;
-    float d = t_sq * t;
+    const float a { t_inv_sq * t_inv };
+    const float b { 3.0f * t_inv_sq * t };
+    const float c { 3.0f * t_inv * t_sq };
+    const float d { t_sq * t };
 
     return {
       a * start.x + b * c1.x + c * c2.x + d * end.x,
@@ -35,24 +39,36 @@ namespace CrocobyGraph {
     };
   }
 
-  Vector2 calculate_bezier_cubic_in_out_dot(Vector2 a, Vector2 b, float divisions, float index) noexcept {
+  Vector2 calculate_bezier_cubic_in_out_dot(
+    Vector2 a, Vector2 b,
+    float segments, float index
+  ) noexcept {
     return {
-      a.x + (b.x - a.x) / divisions * index,
-      ease_cubic_in_out(index, a.y, b.y - a.y, divisions),
+      a.x + (b.x - a.x) / segments * index,
+      ease_cubic_in_out(index, a.y, b.y - a.y, segments),
     };
   }
 
-  ApproximatelyIntersectResult approximately_circle_intersection(uint32_t spline_segments, float circle_radius, Vector2 circle_center, std::function<Vector2(uint32_t)> spline_dot_function, uint32_t left, uint32_t right) {
-    float divisions { static_cast<float>(spline_segments) };
-    float radius_square { circle_radius * circle_radius };
-    Vector2 dot { 0 };
+  ApproximatelyIntersectResult approximately_circle_intersection(
+    uint32_t spline_segments, 
+    float circle_radius, Vector2 circle_center, 
+    std::function<Vector2(uint32_t)> spline_dot_function,
+    uint32_t left, uint32_t right
+  ) {
+    const float segments { static_cast<float>(spline_segments) };
+    const float radius_square { circle_radius * circle_radius };
+
+    Vector2 dot { 0.0f, 0.0f };
     float distance { 0.0f };
     uint32_t index { 0 };
+
     while (left != right) {
       uint32_t mid = left + std::floor((right - left) * 0.5f);
+
       index = mid;
       dot = spline_dot_function(index);
       distance = (dot.x - circle_center.x) * (dot.x - circle_center.x) + (dot.y - circle_center.y) * (dot.y - circle_center.y);
+
       if (distance > radius_square) {
         left = mid + 1;
       } else if (distance < radius_square) {
@@ -66,15 +82,26 @@ namespace CrocobyGraph {
     return { dot, index, std::sqrt(distance) };
   }
 
-  ApproximatelyIntersectResult approximately_circle_intersection(uint32_t spline_segments, float circle_radius, Vector2 circle_center, std::function<Vector2(uint32_t)> spline_dot_function, uint32_t left) {
+  ApproximatelyIntersectResult approximately_circle_intersection(
+    uint32_t spline_segments,
+    float circle_radius, Vector2 circle_center,
+    std::function<Vector2(uint32_t)> spline_dot_function,
+    uint32_t left
+  ) {
     return approximately_circle_intersection(spline_segments, circle_radius, circle_center, spline_dot_function, left, spline_segments - 1);
   }
 
-  bool check_point_in_rect(Vector2 point, Vector2 rect_top_left, Vector2 rect_bottom_right) noexcept {
+  bool check_point_in_rect(
+    Vector2 point,
+    Vector2 rect_top_left, Vector2 rect_bottom_right
+  ) noexcept {
     return rect_top_left.x <= point.x && rect_top_left.y <= point.y && rect_bottom_right.x >= point.x && rect_bottom_right.y >= point.y;
   }
 
-  bool check_rect_collision_line(Vector2 line_start, Vector2 line_end, Vector2 rect_top_left, Vector2 rect_bottom_right) noexcept {
+  bool check_rect_collision_line(
+    Vector2 line_start, Vector2 line_end,
+    Vector2 rect_top_left, Vector2 rect_bottom_right
+  ) noexcept {
     if (check_point_in_rect(line_start, rect_top_left, rect_bottom_right)) return true;
 
     Vector2 t;
@@ -86,11 +113,18 @@ namespace CrocobyGraph {
     return false;
   }
 
-  bool check_rect_a_in_rect_b(Vector2 rect_a_top_left, Vector2 rect_a_bottom_right, Vector2 rect_b_top_left, Vector2 rect_b_bottom_right) noexcept {
+  bool check_rect_a_in_rect_b(
+    Vector2 rect_a_top_left, Vector2 rect_a_bottom_right,
+    Vector2 rect_b_top_left, Vector2 rect_b_bottom_right
+  ) noexcept {
     return rect_a_top_left.x <= rect_b_bottom_right.x && rect_a_bottom_right.x >= rect_b_top_left.x && rect_a_top_left.y <= rect_b_bottom_right.y && rect_a_bottom_right.y >= rect_b_top_left.y;
   }
 
-  bool approximately_check_bezier_line_in_rect(std::function<Vector2(ApproximatelySplineCallbackParams)> spline_dot_function, Vector2 rect_top_left, Vector2 rect_bottom_right, float threshold) {
+  bool approximately_check_bezier_line_in_rect(
+    std::function<Vector2(ApproximatelySplineCallbackParams)> spline_dot_function,
+    Vector2 rect_top_left, Vector2 rect_bottom_right,
+    float area_threshold
+  ) {
     std::queue<ApproximatelySplineCallbackParams> parts;
     parts.push({
       .divisions = 1,
@@ -98,30 +132,32 @@ namespace CrocobyGraph {
     });
 
     for (; !parts.empty(); parts.pop()) {
-      auto& front = parts.front();
+      const auto& front { parts.front() };
 
-      auto a = spline_dot_function({
+      const auto a { spline_dot_function({
         .divisions = front.divisions,
         .index = front.index,
-      });
+      }) };
 
-      auto b = spline_dot_function({
+      const auto b { spline_dot_function({
         .divisions = front.divisions,
         .index = front.index + 1,
-      });
+      }) };
 
-      Vector2 top_left = {
+      const Vector2 top_left {
         std::min(a.x, b.x),
         std::min(a.y, b.y),
       };
 
-      Vector2 bottom_right = {
+      const Vector2 bottom_right {
         std::max(a.x, b.x),
         std::max(a.y, b.y),
       };
 
       if (check_rect_a_in_rect_b(top_left, bottom_right, rect_top_left, rect_bottom_right)) {
-        if ((bottom_right.x - top_left.x) * (bottom_right.y - top_left.y) < threshold) return true;
+        const float area { (bottom_right.x - top_left.x) * (bottom_right.y - top_left.y) };
+
+        if (area < area_threshold) return true;
 
         parts.push({
           .divisions = front.divisions * 2,
