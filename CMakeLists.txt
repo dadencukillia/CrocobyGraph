@@ -22,7 +22,7 @@ add_library(CrocobyGraph
 
   ./src/interface/batch.cpp
   ./src/interface/color.cpp
-  ./src/interface/layout.cpp
+  ./src/interface/decompose.cpp
   ./src/interface/ecs.cpp
   ./src/interface/editor_frame.cpp
   ./src/interface/physics_frame.cpp
@@ -52,3 +52,23 @@ target_link_libraries(CrocobyGraph PUBLIC rlImGui entt)
 
 add_executable(DemoCrocobyGraph ./bin/main.cpp)
 target_link_libraries(DemoCrocobyGraph PRIVATE CrocobyGraph)
+
+# Tests
+
+enable_testing()
+
+# test_adjacency_matrix: standalone — only needs adjacency_matrix.cpp (no raylib/imgui linkage).
+add_executable(TestAdjacencyMatrix
+  ./tests/test_adjacency_matrix.cpp
+  ./src/interface/adjacency_matrix.cpp
+)
+target_include_directories(TestAdjacencyMatrix PRIVATE ./src)
+add_test(NAME AdjacencyMatrix COMMAND TestAdjacencyMatrix)
+
+# test_grid_and_scene: requires the full CrocobyGraph library.
+add_executable(TestGridAndScene
+  ./tests/test_grid_and_scene.cpp
+)
+target_include_directories(TestGridAndScene PRIVATE ./src)
+target_link_libraries(TestGridAndScene PRIVATE CrocobyGraph)
+add_test(NAME GridAndScene COMMAND TestGridAndScene)
